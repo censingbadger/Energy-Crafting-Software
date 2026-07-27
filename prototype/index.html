@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Energy Crafting Companion — Prototype</title>
+<style>
+  :root{
+    --bg:#FAF8F4; --surface:#FFFFFF; --ink:#20261F; --ink2:#4A544C; --muted:#7A837C;
+    --line:#E5E1D8; --line2:#EFECE4;
+    --green:#0E8A5A; --ember:#C4552D; --blue:#3E6DC4; --plum:#8A55B0;
+    --green-tint:#E7F2EC; --ember-tint:#F7E9E2; --live:#0E8A5A;
+    --shadow:0 1px 2px rgba(32,38,31,.05),0 8px 24px rgba(32,38,31,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#131714; --surface:#1B211C; --ink:#ECEFE9; --ink2:#B7BFB6; --muted:#828B82;
+      --line:#2A322B; --line2:#232A24;
+      --green:#38A276; --ember:#D9744B; --blue:#6089D2; --plum:#B07BD0;
+      --green-tint:#1D2B23; --ember-tint:#2E211B; --live:#38A276;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131714; --surface:#1B211C; --ink:#ECEFE9; --ink2:#B7BFB6; --muted:#828B82;
+    --line:#2A322B; --line2:#232A24;
+    --green:#38A276; --ember:#D9744B; --blue:#6089D2; --plum:#B07BD0;
+    --green-tint:#1D2B23; --ember-tint:#2E211B; --live:#38A276;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"]{
+    --bg:#FAF8F4; --surface:#FFFFFF; --ink:#20261F; --ink2:#4A544C; --muted:#7A837C;
+    --line:#E5E1D8; --line2:#EFECE4;
+    --green:#0E8A5A; --ember:#C4552D; --blue:#3E6DC4; --plum:#8A55B0;
+    --green-tint:#E7F2EC; --ember-tint:#F7E9E2; --live:#0E8A5A;
+    --shadow:0 1px 2px rgba(32,38,31,.05),0 8px 24px rgba(32,38,31,.06);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);margin:0;
+    font-family:"Avenir Next",Seravek,"Segoe UI",system-ui,sans-serif;
+    font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;padding:0}
+  input,textarea,select{font:inherit;color:var(--ink)}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+  /* ---------- top bar ---------- */
+  .topbar{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:16px;padding:10px 20px;flex-wrap:wrap}
+  .wordmark{font-size:19px;font-weight:600;letter-spacing:-.01em}
+  .wordmark b{color:var(--green);font-weight:600}
+  .cohort{font-size:12.5px;color:var(--muted)}
+  .spacer{flex:1}
+  .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px;gap:2px}
+  .seg button{padding:7px 16px;border-radius:99px;font-size:13.5px;font-weight:600;color:var(--ink2)}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+  .simnote{font-size:11.5px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:4px 10px}
+
+  /* ---------- participant ---------- */
+  .pwrap{max-width:440px;margin:0 auto;padding:26px 18px 80px}
+  .hello{margin:0 0 2px;font-size:26px;font-weight:500;letter-spacing:-.01em}
+  .hello .nm{color:var(--green);font-style:italic}
+  .psub{color:var(--ink2);font-size:14px;margin:0 0 16px}
+  .connect{background:var(--green-tint);border:1px solid var(--line);border-radius:14px;
+    padding:12px 14px;font-size:13.5px;margin-bottom:22px;color:var(--ink2)}
+  .connect b{color:var(--ink)}
+  .stack{display:flex;flex-direction:column;gap:12px}
+  .pill{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+  .pill-head{display:flex;align-items:center;gap:13px;width:100%;padding:15px 16px;text-align:left}
+  .pill-num{flex:none;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);
+    display:grid;place-items:center;font-size:14px;font-weight:600;color:var(--muted)}
+  .pill-t{flex:1;min-width:0}
+  .pill-title{font-size:16.5px;font-weight:600;letter-spacing:-.005em}
+  .pill-sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .pill-state{flex:none;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .pill.live{border-color:var(--live)}
+  .pill.live .pill-num{border-color:var(--live);color:var(--live)}
+  .pill.live .pill-state{color:var(--live)}
+  .livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:5px;vertical-align:1px}
+  @media (prefers-reduced-motion: no-preference){ .pill.live .livedot{animation:pulse 1.6s ease-in-out infinite} }
+  @keyframes pulse{50%{opacity:.35}}
+  .pill.done .pill-num{background:var(--green-tint);border-color:transparent;color:var(--green)}
+  .pill-body{border-top:1px solid var(--line2);padding:16px;display:none}
+  .pill.open .pill-body{display:block}
+  .q{font-size:16px;font-weight:500;margin:0 0 12px;line-height:1.4}
+
+  .txt{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--bg);outline:none}
+  .txt:focus{border-color:var(--green)}
+  textarea.txt{resize:vertical;min-height:74px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:var(--bg);
+    border-radius:12px;padding:11px 18px;font-weight:600;font-size:14.5px}
+  .btn.full{width:100%}
+  .btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line)}
+  .btn:focus-visible,.seg button:focus-visible,.pill-head:focus-visible,.chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  .choice{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .chip{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 13px;text-align:left;background:var(--surface);font-size:14.5px}
+  .chip .cdot{flex:none;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--muted)}
+  .chip[aria-pressed="true"]{border-color:var(--green);background:var(--green-tint)}
+  .chip[aria-pressed="true"] .cdot{background:var(--green);border-color:var(--green)}
+  .slider-row{display:flex;align-items:center;gap:12px;margin:6px 0 14px}
+  input[type=range]{flex:1;accent-color:var(--green)}
+  .slider-val{font-size:22px;font-weight:600;min-width:2ch;text-align:center}
+  .ranklist{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+  .rankrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;
+    padding:9px 11px;background:var(--surface);font-size:13.5px;line-height:1.35}
+  .rankrow .rn{flex:none;width:22px;font-weight:700;color:var(--muted);text-align:center}
+  .rankrow .rt{flex:1}
+  .arr{flex:none;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;font-size:13px;color:var(--ink2)}
+  .arr:disabled{opacity:.25;cursor:default}
+  .donebox{background:var(--green-tint);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--ink2)}
+  .donebox b{color:var(--green)}
+  .quadpick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 4px}
+  .quadpick button{border:1.5px solid var(--line);border-radius:12px;padding:12px 10px;background:var(--surface);text-align:left}
+  .quadpick .qh{font-size:13.5px;font-weight:700}
+  .quadpick .qs{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .quadpick button:hover{border-color:var(--ink2)}
+  .mapitem{font-size:18px;font-weight:600;text-align:center;border:1px dashed var(--line);border-radius:12px;padding:14px 10px}
+  .prog{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+  .groupcard{border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:12px;background:var(--green-tint)}
+  .groupcard .gt{font-weight:700;font-size:15px}
+  .groupcard .gm{font-size:13.5px;color:var(--ink2);margin-top:4px;line-height:1.55}
+  .plan{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+  .plan .pr{display:flex;gap:10px;padding:10px 13px;border-bottom:1px solid var(--line2);font-size:13.5px}
+  .plan .pr:last-child{border-bottom:none}
+  .plan .pk{flex:none;width:118px;color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;padding-top:2px}
+  .plan .pv{flex:1}
+  .field-label{font-size:12px;font-weight:600;color:var(--ink2);margin:12px 0 5px}
+
+  /* ---------- presenter ---------- */
+  .dwrap{max-width:1240px;margin:0 auto;padding:20px 24px 60px}
+  .dtop{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+  .dtitle{font-size:30px;font-weight:500;letter-spacing:-.015em;margin:0}
+  .dcount{font-size:14px;color:var(--muted)}
+  .dcount b{color:var(--green);font-size:16px}
+  .facstrip{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px}
+  .fac{flex:none;display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:99px;
+    padding:8px 15px;background:var(--surface);font-size:13.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+  .fac .fn{color:var(--muted);font-weight:700}
+  .fac[aria-pressed="true"]{border-color:var(--live);color:var(--ink);box-shadow:0 0 0 3px var(--green-tint)}
+  .fac[aria-pressed="true"] .fn{color:var(--live)}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:30px 34px;min-height:430px}
+  .panel-q{font-size:clamp(22px,3vw,32px);font-weight:500;letter-spacing:-.01em;margin:2px 0 6px;line-height:1.25;text-wrap:balance}
+  .panel-sub{color:var(--muted);font-size:14px;margin:0 0 24px}
+  .resp{font-size:13px;color:var(--muted)}
+  .resp b{color:var(--ink)}
+
+  .cloud{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:baseline;justify-content:center;padding:18px 0 26px;max-width:860px;margin:0 auto}
+  .cloud span{line-height:1.1;color:var(--ink2)}
+  .cloud .c1{color:var(--green);font-weight:700}
+  .cloud .c2{color:var(--ink);font-weight:600}
+  .cloud .you{text-decoration:underline;text-decoration-color:var(--green);text-underline-offset:4px}
+
+  .gauge{max-width:640px;margin:0 auto}
+  .gauge-track{position:relative;height:52px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .gdot{position:absolute;bottom:8px;width:9px;height:9px;border-radius:50%;background:var(--ink2);opacity:.4;transform:translateX(-50%)}
+  .gdot.you{background:var(--green);opacity:1;width:12px;height:12px;box-shadow:0 0 0 3px var(--green-tint)}
+  .gavg{position:absolute;bottom:0;top:0;width:2px;background:var(--green);transform:translateX(-50%)}
+  .gavg::after{content:attr(data-v);position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    font-size:22px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums;
+    background:var(--surface);padding:0 6px;border-radius:6px}
+  .gauge-lab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+  .bars{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:13px}
+  .bar{display:grid;grid-template-columns:minmax(180px,300px) 1fr 54px;gap:14px;align-items:center}
+  .bar .bl{font-size:15.5px;line-height:1.3;text-align:right}
+  .bar .bl small{display:block;color:var(--muted);font-size:11.5px}
+  .btrack{position:relative;height:22px;background:var(--line2);border-radius:0 4px 4px 0}
+  .bfill{position:relative;height:100%;border-radius:0 4px 4px 0;background:var(--green);min-width:3px}
+  .bfill[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:8px;top:-32px;background:var(--ink);color:var(--bg);
+    font-size:12px;padding:4px 9px;border-radius:7px;white-space:nowrap;z-index:5}
+  .bar .bv{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  @media (prefers-reduced-motion: no-preference){ .bfill{transition:width .5s cubic-bezier(.2,.8,.2,1)} }
+
+  .split{max-width:720px;margin:0 auto}
+  .split-track{display:flex;gap:3px;height:44px;border-radius:6px;overflow:hidden;margin-bottom:12px}
+  .split-track div{display:flex;align-items:center;padding:0 14px;color:#fff;font-weight:700;font-size:15px;min-width:44px}
+  .legend{display:flex;gap:22px;justify-content:center;font-size:13.5px;color:var(--ink2);flex-wrap:wrap}
+  .lk{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+
+  .quadgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:900px;margin:0 auto}
+  .quad{border:1px solid var(--line);border-radius:16px;padding:16px 18px;min-height:150px}
+  .quad h3{margin:0 0 2px;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+  .quad .qd{font-size:12px;color:var(--muted);margin-bottom:12px}
+  .quad ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .quad li{display:flex;justify-content:space-between;gap:10px;font-size:14.5px}
+  .quad li .n{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+  .quad li.youli{font-weight:600}
+  .quad li.youli::after{content:"you";font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--green);align-self:center}
+
+  .ribbon{max-width:760px;margin:26px auto 0}
+  .ribbon-track{position:relative;height:34px;background:var(--line2);border-radius:8px;overflow:hidden}
+  .ribbon-band{position:absolute;top:0;bottom:0;background:var(--green);opacity:.75}
+  .ribbon-band.b2{background:var(--plum);opacity:.6}
+  .ribbon-lab{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:5px}
+  .callout{max-width:760px;margin:16px auto 0;background:var(--green-tint);border-radius:12px;padding:12px 16px;font-size:14.5px;color:var(--ink2);text-align:center}
+  .callout b{color:var(--ink)}
+
+  .feed{max-width:640px;margin:20px auto 0;display:flex;flex-direction:column;gap:8px}
+  .feed div{border-left:3px solid var(--green);padding:4px 0 4px 14px;font-size:14.5px;color:var(--ink2);font-style:italic}
+  .feed div b{font-style:normal;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:1px}
+
+  .gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .gcard{border:1px solid var(--line);border-radius:16px;padding:15px 17px}
+  .gcard .gh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .gcard .gh b{font-size:15.5px}
+  .status{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border-radius:99px;padding:3px 10px}
+  .status.in{background:var(--green-tint);color:var(--green)}
+  .status.disc{background:var(--line2);color:var(--muted)}
+  .gcard .gm2{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .gcard .ga{font-size:13.5px;color:var(--ink2);border-top:1px solid var(--line2);padding-top:8px}
+
+  .statrow{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:26px}
+  .stat{border:1px solid var(--line);border-radius:16px;padding:16px 26px;text-align:center;min-width:150px}
+  .stat .sv{font-size:38px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat .sv small{font-size:18px;color:var(--muted);font-weight:500}
+  .stat .sl{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+    padding:11px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:60;opacity:0;pointer-events:none;box-shadow:var(--shadow)}
+  .toast.show{opacity:1}
+  @media (prefers-reduced-motion: no-preference){ .toast{transition:opacity .25s} }
+  @media (max-width:720px){
+    .bar{grid-template-columns:1fr 60px;grid-template-rows:auto auto}
+    .bar .bl{grid-column:1/-1;text-align:left}
+    .quadgrid{grid-template-columns:1fr}
+    .panel{padding:20px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="wordmark serif">Energy<b>·</b>Crafting <span style="font-weight:400;color:var(--muted)">Live</span></div>
+    <div class="cohort">ADS Executive Sales Leadership · Wed Jul 29 · 8:30–12:00 · Loudermilk 107</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="simnote">Prototype — cohort responses are simulated</div>
+  <div class="seg" role="group" aria-label="View">
+    <button id="btnP" aria-pressed="true">Participant</button>
+    <button id="btnD" aria-pressed="false">Presenter</button>
+  </div>
+</header>
+
+<main id="pview" class="pwrap"></main>
+<main id="dview" class="dwrap" hidden></main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+'use strict';
+/* ================= data ================= */
+const STRESSORS = [
+  {id:'growthcap', t:'Delivering growth with a headcount cap', s:'the small-business ceiling'},
+  {id:'awards',    t:'Contract award cycles outside my control', s:'waiting on the government'},
+  {id:'tempo',     t:'Always-on customer tempo', s:'DoD hours, our hours'},
+  {id:'develop',   t:'Developing my directors while still selling', s:'player-coach tension'},
+  {id:'email',     t:'Email bleeding into evenings', s:'the slow leak'},
+  {id:'switch',    t:'Switching between strategy and firefighting', s:'attention whiplash'},
+];
+/* Borda-style points from simulated rankings (23 sim participants, 6..1 pts) */
+const SIM_STRESS = {growthcap:96, tempo:88, switch:79, develop:74, awards:63, email:55};
+const SIM_FIRSTS = {growthcap:7, tempo:6, switch:4, develop:3, awards:2, email:1};
+
+const CLOUD = [
+  ['bounce-back',6],['adaptability',5],['grit',5],['endurance',4],['recovery',3],
+  ['calm under fire',3],['toughness',2],['flexibility',2],['perseverance',2],
+  ['mindset',2],['stamina',1],['balance',1],['durability',1]
+];
+const SIM_ENERGY = [3,4,4,5,5,5,6,6,6,6,6,7,7,7,7,7,8,8,8,8,9,9,4];
+
+const MAP_ITEMS = [
+  {id:'calls',   t:'Back-to-back video calls',  sim:{R:0,C:2,S:8,F:13}},
+  {id:'oneones', t:'One-on-ones with my team',  sim:{R:6,C:12,S:4,F:1}},
+  {id:'win',     t:'Closing a deal',            sim:{R:1,C:19,S:0,F:3}},
+  {id:'workout', t:'Morning workout',           sim:{R:9,C:12,S:1,F:1}},
+  {id:'latemail',t:'Late-night email sweep',    sim:{R:0,C:1,S:17,F:5}},
+  {id:'deep',    t:'Deep work on strategy',     sim:{R:8,C:11,S:3,F:1}},
+  {id:'celebrate',t:'Team celebration',         sim:{R:5,C:15,S:1,F:2}},
+  {id:'scroll',  t:'Commute scroll',            sim:{R:2,C:0,S:18,F:3}},
+];
+const QUADS = {
+  R:{name:'Rechargers', desc:'fuels you · quiet',   color:'var(--green)'},
+  C:{name:'Catalysts',  desc:'fuels you · intense', color:'var(--blue)'},
+  S:{name:'Slow Leaks', desc:'drains you · quiet',  color:'var(--plum)'},
+  F:{name:'Fireworks',  desc:'drains you · intense',color:'var(--ember)'},
+};
+
+const CHRONO_QS = [
+  {q:'No alarm, no meetings — when do you naturally wake?', o:['Before 6:30','6:30–8:00','After 8:00']},
+  {q:'When is your sharpest thinking?', o:['First thing in the morning','Late morning to mid-day','Evening or late night']},
+  {q:'It’s 9:30 pm. You are…', o:['Winding down already','Could go either way','Just hitting my stride']},
+  {q:'Pick a slot for your hardest negotiation:', o:['8:00 am','11:00 am','4:00 pm']},
+];
+const SIM_CHRONO = {lark:7, third:11, owl:5};
+
+const MS = ['Motion / rest','Mastery','Making connections','Meaning','Mindfulness'];
+const SIM_MS = [7,4,5,3,4];
+const SIM_COMMITS = [
+  ['Motion / rest','Gym before email, three mornings a week — not after.'],
+  ['Making connections','Friday lunch with one director, no agenda.'],
+  ['Mindfulness','Two minutes of nothing between customer calls.'],
+];
+
+const GROUPS = [
+  {n:1, m:'Jordan K. · Priya S. · Sam D. · Alex M.', in:true,  a:'Root cause: the team stopped seeing progress. Reintroduce visible weekly wins.'},
+  {n:2, m:'Taylor B. · Chris T. · Morgan L. · Jamie F.', in:true, a:'Leader energy set the weather — start with the leader’s own recovery.'},
+  {n:3, m:'You · Maya R. · Dre W. · Casey P.', in:false, a:''},
+  {n:4, m:'Riley N. · Quinn H. · Devon G. · Pat O.', in:false, a:''},
+  {n:5, m:'Avery C. · Reese T. · Blake W. · Sky M.', in:false, a:''},
+  {n:6, m:'Drew F. · Lane B. · Toni V. · Kai J.', in:false, a:''},
+];
+
+const ACTS = [
+  {id:'checkin', title:'Check In', sub:'One word + your energy right now'},
+  {id:'sig',     title:'Stress Signatures', sub:'How did the signature round land?'},
+  {id:'night',   title:'What Keeps You Up at Night', sub:'Rank your top demands — from your bios'},
+  {id:'map',     title:'Your Energy Map', sub:'Rechargers, catalysts, slow leaks, fireworks'},
+  {id:'chrono',  title:'Owl or Lark', sub:'Find your peak hours'},
+  {id:'recover', title:'Recovery & the 5 Ms', sub:'Pick your replenishment move'},
+  {id:'case',    title:'Case Breakouts', sub:'Bob Holden — your group & questions'},
+  {id:'plan',    title:'My Energy Plan', sub:'Your takeaway worksheet'},
+];
+
+/* ================= state ================= */
+const S = {
+  live: 0,
+  open: 0,
+  view: 'p',
+  you: {
+    word:null, energy:6, sig:null,
+    rank: STRESSORS.map(x=>x.id), rankDone:false,
+    map:{}, mapIdx:0,
+    chrono:[null,null,null,null], chronoType:null,
+    paradox:null, m:null, commit:'', recoverDone:false,
+    caseNotes:'', caseDone:false,
+    rocks:['','',''], planSent:false,
+  },
+};
+const $ = (s,el)=> (el||document).querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), 2600); }
+
+/* ================= participant view ================= */
+function pRender(){
+  const el = $('#pview');
+  const doneMap = actDone();
+  el.innerHTML = `
+    <h1 class="hello serif">Good morning, <span class="nm">Dana</span></h1>
+    <p class="psub">Tap the glowing pill — everything else waits its turn.</p>
+    <div class="connect"><span class="eyebrow" style="color:var(--green)">From the cohort bios</span><br>
+      You and <b>3 others</b> here built sales teams through rapid growth — find <b>Maya R.</b>, <b>Chris T.</b>, and <b>Jordan K.</b> at the break.</div>
+    <div class="stack">${ACTS.map((a,i)=>pill(a,i,doneMap[a.id])).join('')}</div>`;
+  el.querySelectorAll('.pill-head').forEach(h=>h.addEventListener('click',()=>{
+    const i=+h.dataset.i; S.open = (S.open===i? -1 : i); pRender();
+  }));
+  wireBody(el);
+}
+function actDone(){
+  const y=S.you;
+  return {checkin:!!y.word, sig:!!y.sig, night:y.rankDone, map:y.mapIdx>=MAP_ITEMS.length,
+    chrono:!!y.chronoType, recover:y.recoverDone, case:y.caseDone, plan:y.planSent};
+}
+function pill(a,i,done){
+  const live = i===S.live, open = i===S.open;
+  const state = done ? '✓ done' : (live ? '<span class="livedot"></span>Live' : '');
+  return `<section class="pill ${live?'live':''} ${open?'open':''} ${done?'done':''}">
+    <button class="pill-head" data-i="${i}" aria-expanded="${open}">
+      <span class="pill-num">${done?'✓':i+1}</span>
+      <span class="pill-t"><span class="pill-title">${a.title}</span><span class="pill-sub" style="display:block">${a.sub}</span></span>
+      <span class="pill-state">${state}</span>
+    </button>
+    <div class="pill-body">${open? body(a.id) : ''}</div>
+  </section>`;
+}
+
+function body(id){
+  const y=S.you;
+  if(id==='checkin'){
+    if(y.word) return doneNote(`Sent: <b>“${esc(y.word)}”</b> · energy ${y.energy}/10. Watch the screen — the cloud is growing.`);
+    return `<p class="q">What does <em class="serif">resilience</em> mean to you — in one word?</p>
+      <input class="txt" id="inWord" maxlength="24" placeholder="one word…" autocomplete="off">
+      <p class="q" style="margin-top:16px">And your energy, right now?</p>
+      <div class="slider-row"><span class="mono" style="color:var(--muted)">0</span>
+        <input type="range" id="inEnergy" min="0" max="10" value="6" aria-label="Energy 0 to 10">
+        <span class="slider-val mono" id="outEnergy">6</span></div>
+      <button class="btn full" id="sendCheckin">Send</button>`;
+  }
+  if(id==='sig'){
+    if(y.sig) return doneNote(`Logged as a <b>${y.sig}</b> response. Same task, different weather — that’s appraisal.`);
+    return `<p class="q">Signing left-handed under time pressure — how did it land in your body?</p>
+      <div class="choice">
+        <button class="chip" data-sig="threat"><span class="cdot"></span>Like a <b>&nbsp;threat&nbsp;</b> — tense, frustrating</button>
+        <button class="chip" data-sig="challenge"><span class="cdot"></span>Like a <b>&nbsp;challenge&nbsp;</b> — focused, even fun</button>
+      </div>`;
+  }
+  if(id==='night'){
+    if(y.rankDone) return doneNote(`Ranked. Your #1: <b>${esc(STRESSORS.find(s=>s.id===y.rank[0]).t)}</b>.`);
+    return `<p class="q">We read the cohort bios. Here’s what we think keeps this room up at night — <b>rank them for you</b>.</p>
+      <div class="ranklist">${y.rank.map((rid,idx)=>{
+        const s=STRESSORS.find(x=>x.id===rid);
+        return `<div class="rankrow"><span class="rn mono">${idx+1}</span><span class="rt">${s.t}</span>
+          <button class="arr" data-up="${idx}" aria-label="Move up" ${idx===0?'disabled':''}>▲</button>
+          <button class="arr" data-dn="${idx}" aria-label="Move down" ${idx===y.rank.length-1?'disabled':''}>▼</button></div>`;
+      }).join('')}</div>
+      <button class="btn full" id="sendRank">Submit my ranking</button>`;
+  }
+  if(id==='map'){
+    if(y.mapIdx>=MAP_ITEMS.length) return doneNote(`All 8 sorted. Your slow leak: <b>${esc(yourSlowLeak())}</b> — remember it for your plan.`);
+    const item = MAP_ITEMS[y.mapIdx];
+    return `<p class="q">Where does this land for you?</p>
+      <div class="mapitem serif">${item.t}</div>
+      <div class="quadpick">${Object.entries(QUADS).map(([k,q])=>
+        `<button data-quad="${k}"><span class="qh" style="color:${q.color}">${q.name}</span><span class="qs" style="display:block">${q.desc}</span></button>`).join('')}
+      </div><p class="prog mono">${y.mapIdx+1} of ${MAP_ITEMS.length}</p>`;
+  }
+  if(id==='chrono'){
+    if(y.chronoType) return doneNote(`You lean <b>${y.chronoType}</b>. ${chronoTip(y.chronoType)}`);
+    const qi = y.chrono.findIndex(v=>v===null);
+    const q = CHRONO_QS[qi];
+    return `<p class="q">${q.q}</p>
+      <div class="choice">${q.o.map((o,oi)=>`<button class="chip" data-cq="${qi}" data-co="${oi}"><span class="cdot"></span>${o}</button>`).join('')}</div>
+      <p class="prog mono">${qi+1} of 4</p>`;
+  }
+  if(id==='recover'){
+    if(y.recoverDone) return doneNote(`Your M: <b>${esc(y.m)}</b>.${y.commit? ' Commitment saved for your plan.':''}`);
+    return `<p class="q">“When I most need recovery, I’m least likely to take it.”</p>
+      <div class="choice">
+        <button class="chip" data-px="agree"><span class="cdot"></span>That’s me</button>
+        <button class="chip" data-px="disagree"><span class="cdot"></span>Not really me</button>
+      </div>
+      <p class="q">Pick the M you’ll actually use this month:</p>
+      <div class="choice">${MS.map(m=>`<button class="chip" data-m="${m}"><span class="cdot"></span>${m}</button>`).join('')}</div>
+      <div class="field-label">One concrete commitment (optional)</div>
+      <input class="txt" id="inCommit" placeholder="e.g., walk before the 8am standup…">
+      <button class="btn full" id="sendRecover" style="margin-top:12px">Save</button>`;
+  }
+  if(id==='case'){
+    if(y.caseDone) return doneNote(`Group 3’s notes are in. Watch the screen for the debrief.`);
+    return `<div class="groupcard"><div class="gt">You’re in Group 3</div>
+      <div class="gm">with <b>Maya R.</b> (Federal Programs), <b>Dre W.</b> (Supply Chain), <b>Casey P.</b> (Medical Division)</div></div>
+      <p class="q" style="margin-bottom:6px">Discuss, then have one scribe capture:</p>
+      <ol style="margin:0 0 12px;padding-left:20px;font-size:14px;color:var(--ink2);line-height:1.7">
+        <li>What are the root causes of the team’s disengagement?</li>
+        <li>What would you do to re-engage them?</li>
+        <li>Your single highest-priority action?</li></ol>
+      <textarea class="txt" id="inCase" placeholder="Group 3 notes…"></textarea>
+      <button class="btn full" id="sendCase" style="margin-top:10px">Submit as scribe</button>`;
+  }
+  if(id==='plan'){
+    const rows = [
+      ['Chronotype', y.chronoType? `${y.chronoType} — ${chronoTip(y.chronoType)}` : '<i style="color:var(--muted)">finish “Owl or Lark”</i>'],
+      ['Top demand', y.rankDone? esc(STRESSORS.find(s=>s.id===y.rank[0]).t) : '<i style="color:var(--muted)">finish the ranking</i>'],
+      ['Slow leak to cut', y.mapIdx>=MAP_ITEMS.length? esc(yourSlowLeak()) : '<i style="color:var(--muted)">finish your energy map</i>'],
+      ['My 5-M move', y.recoverDone? `${esc(y.m)}${y.commit? ' — “'+esc(y.commit)+'”':''}` : '<i style="color:var(--muted)">pick your M</i>'],
+    ];
+    if(y.planSent) return doneNote(`Plan sent to your inbox. Bring your own weather.`) +
+      `<div class="plan" style="margin-top:12px">${rows.map(r=>`<div class="pr"><span class="pk">${r[0]}</span><span class="pv">${r[1]}</span></div>`).join('')}</div>`;
+    return `<p class="q">Your plan so far — assembled from today’s answers:</p>
+      <div class="plan">${rows.map(r=>`<div class="pr"><span class="pk">${r[0]}</span><span class="pv">${r[1]}</span></div>`).join('')}</div>
+      <div class="field-label">Big rocks — up to three energy commitments for the next 30 days</div>
+      ${[0,1,2].map(i=>`<input class="txt" data-rock="${i}" value="${esc(y.rocks[i])}" placeholder="Big rock ${i+1}" style="margin-bottom:8px">`).join('')}
+      <button class="btn full" id="sendPlan">Email me my plan</button>`;
+  }
+  return '';
+}
+const doneNote = html => `<div class="donebox">${html}</div>`;
+function yourSlowLeak(){
+  const leak = MAP_ITEMS.find(m=>S.you.map[m.id]==='S');
+  return leak? leak.t : 'no slow leaks — nicely crafted';
+}
+function chronoTip(t){
+  return t==='Lark' ? 'Guard 8:00–11:00 for your hardest work.'
+       : t==='Owl'  ? 'Push deep work past lunch; protect your late peak.'
+       : 'Flexible peak — anchor deep work late morning.';
+}
+
+function wireBody(el){
+  const y=S.you;
+  const on=(sel,fn)=>{ const n=$(sel,el); if(n) n.addEventListener('click',fn); };
+  const rerender=()=>{ pRender(); if(S.view==='d') dRender(); };
+  /* checkin */
+  const rng=$('#inEnergy',el); if(rng) rng.addEventListener('input',()=>{$('#outEnergy',el).textContent=rng.value;});
+  on('#sendCheckin',()=>{ const w=$('#inWord',el).value.trim(); if(!w) return toast('Give us one word first');
+    y.word=w; y.energy=+$('#inEnergy',el).value; advance('checkin'); toast('On the board — watch the cloud'); rerender(); });
+  /* sig */
+  el.querySelectorAll('[data-sig]').forEach(b=>b.addEventListener('click',()=>{ y.sig=b.dataset.sig; advance('sig'); rerender(); }));
+  /* rank */
+  el.querySelectorAll('[data-up]').forEach(b=>b.addEventListener('click',()=>{ const i=+b.dataset.up;
+    [y.rank[i-1],y.rank[i]]=[y.rank[i],y.rank[i-1]]; pRender(); }));
+  el.querySelectorAll('[data-dn]').forEach(b=>b.addEventListener('click',()=>{ const i=+b.dataset.dn;
+    [y.rank[i+1],y.rank[i]]=[y.rank[i],y.rank[i+1]]; pRender(); }));
+  on('#sendRank',()=>{ y.rankDone=true; advance('night'); toast('Ranked — see where the room lands'); rerender(); });
+  /* map */
+  el.querySelectorAll('[data-quad]').forEach(b=>b.addEventListener('click',()=>{
+    y.map[MAP_ITEMS[y.mapIdx].id]=b.dataset.quad; y.mapIdx++;
+    if(y.mapIdx>=MAP_ITEMS.length){ advance('map'); toast('Energy map complete'); }
+    rerender(); }));
+  /* chrono */
+  el.querySelectorAll('[data-cq]').forEach(b=>b.addEventListener('click',()=>{
+    y.chrono[+b.dataset.cq]=+b.dataset.co;
+    if(!y.chrono.includes(null)){ const sc=y.chrono.reduce((a,v)=>a+v,0);
+      y.chronoType = sc<=2 ? 'Lark' : sc>=6 ? 'Owl' : 'Third bird'; advance('chrono'); toast(`You lean ${y.chronoType}`);}
+    rerender(); }));
+  /* recover */
+  el.querySelectorAll('[data-px]').forEach(b=>b.addEventListener('click',()=>{
+    el.querySelectorAll('[data-px]').forEach(x=>x.setAttribute('aria-pressed', x===b)); y.paradox=b.dataset.px; }));
+  el.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{
+    el.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed', x===b)); y.m=b.dataset.m; }));
+  on('#sendRecover',()=>{ if(!y.m) return toast('Pick one M first');
+    y.commit=$('#inCommit',el).value.trim(); y.recoverDone=true; advance('recover'); toast('Saved to your plan'); rerender(); });
+  /* case */
+  on('#sendCase',()=>{ const v=$('#inCase',el).value.trim(); if(!v) return toast('Jot the group’s notes first');
+    y.caseNotes=v; y.caseDone=true; GROUPS[2].in=true; GROUPS[2].a=v; advance('case'); toast('Group 3 is on the board'); rerender(); });
+  /* plan */
+  el.querySelectorAll('[data-rock]').forEach(inp=>inp.addEventListener('input',()=>{ y.rocks[+inp.dataset.rock]=inp.value; }));
+  on('#sendPlan',()=>{ y.planSent=true; toast('In the real app: a one-pager lands in your inbox'); rerender(); });
+}
+function advance(id){
+  const i = ACTS.findIndex(a=>a.id===id);
+  if(S.live===i && i<ACTS.length-1){ S.live=i+1; }
+  S.open = S.live;
+}
+
+/* ================= presenter view ================= */
+function dRender(){
+  const el=$('#dview');
+  const a=ACTS[S.live];
+  el.innerHTML = `
+    <div class="dtop"><h1 class="dtitle serif">${a.title}</h1>
+      <span class="dcount"><b>24</b> of 26 joined · <span id="respLine"></span></span>
+      <div class="spacer"></div><span class="eyebrow">Facilitator — tap to make live</span></div>
+    <div class="facstrip">${ACTS.map((x,i)=>
+      `<button class="fac" data-live="${i}" aria-pressed="${i===S.live}"><span class="fn mono">${i+1}</span>${x.title}</button>`).join('')}</div>
+    <section class="panel">${panel(a.id)}</section>`;
+  el.querySelectorAll('[data-live]').forEach(b=>b.addEventListener('click',()=>{
+    S.live=+b.dataset.live; S.open=S.live; dRender(); }));
+}
+const youIn = f => f ? 1 : 0;
+function panel(id){
+  const y=S.you;
+  if(id==='checkin'){
+    const n = 23 + youIn(y.word);
+    const words = CLOUD.map(([w,c])=>({w,c,you:false}));
+    if(y.word){ const hit=words.find(x=>x.w.toLowerCase()===y.word.toLowerCase());
+      if(hit){hit.c++; hit.you=true;} else words.push({w:y.word,c:1,you:true}); }
+    words.sort((a,b)=>b.c-a.c);
+    const max=words[0].c;
+    const energies=[...SIM_ENERGY, ...(y.word?[y.energy]:[])];
+    const avg=(energies.reduce((a,v)=>a+v,0)/energies.length).toFixed(1);
+    setResp(n);
+    return `<p class="panel-q serif">What does resilience mean to you?</p>
+      <p class="panel-sub">One word each — ${n} in so far</p>
+      <div class="cloud">${words.map(x=>{
+        const s=16+Math.round(30*(x.c/max));
+        const cls=(x.c===max?'c1':x.c>=max*.55?'c2':'')+(x.you?' you':'');
+        return `<span class="${cls}" style="font-size:${s}px">${esc(x.w)}</span>`;}).join('')}</div>
+      <div class="gauge"><div class="eyebrow" style="text-align:center;margin-bottom:14px">Room energy right now</div>
+        <div class="gauge-track">${energies.map((v,i)=>
+          `<span class="gdot ${y.word&&i===energies.length-1?'you':''}" style="left:${v*10}%;bottom:${6+(i%5)*8}px"></span>`).join('')}
+          <span class="gavg" data-v="${avg}" style="left:${avg*10}%"></span></div>
+        <div class="gauge-lab mono"><span>0 · running on empty</span><span>10 · fully charged</span></div></div>`;
+  }
+  if(id==='sig'){
+    const th=9+youIn(y.sig==='threat'), ch=14+youIn(y.sig==='challenge'), n=th+ch;
+    setResp(n);
+    const tp=Math.round(100*th/n), cp=100-tp;
+    return `<p class="panel-q serif">Same scribble, different weather</p>
+      <p class="panel-sub">How the signature round felt — ${n} responses</p>
+      <div class="split"><div class="split-track">
+        <div style="flex:${th};background:var(--ember)">${tp}%</div>
+        <div style="flex:${ch};background:var(--green)">${cp}%</div></div>
+      <div class="legend"><span><span class="lk" style="background:var(--ember)"></span>Threat — tense, constricting</span>
+        <span><span class="lk" style="background:var(--green)"></span>Challenge — focused, energizing</span></div></div>
+      <div class="callout">Appraisal is the hinge: the <b>task was identical</b> — the stress response wasn’t.</div>`;
+  }
+  if(id==='night'){
+    const pts={...SIM_STRESS}, firsts={...SIM_FIRSTS};
+    if(y.rankDone){ y.rank.forEach((rid,idx)=>{ pts[rid]+= (6-idx); }); firsts[y.rank[0]]++; }
+    const rows=STRESSORS.map(s=>({s,p:pts[s.id],f:firsts[s.id]})).sort((a,b)=>b.p-a.p);
+    const max=rows[0].p; setResp(23+youIn(y.rankDone));
+    return `<p class="panel-q serif">What keeps this room up at night</p>
+      <p class="panel-sub">Hypothesized from your bios, ranked by you — weighted score</p>
+      <div class="bars">${rows.map(r=>`<div class="bar">
+        <span class="bl">${r.s.t}<small>${r.s.s}</small></span>
+        <div class="btrack"><div class="bfill" data-tip="#1 pick for ${r.f} people" style="width:${Math.round(100*r.p/max)}%"></div></div>
+        <span class="bv mono">${r.p}</span></div>`).join('')}</div>
+      <div class="callout">Talk to the top two — <b>which of these are demands, and which are drains?</b></div>`;
+  }
+  if(id==='map'){
+    setResp(23+ (S.you.mapIdx>=MAP_ITEMS.length?1:0));
+    return `<p class="panel-q serif">The room’s energy map</p>
+      <p class="panel-sub">Where each activity landed — count of votes per quadrant</p>
+      <div class="quadgrid">${Object.entries(QUADS).map(([k,q])=>{
+        const items=MAP_ITEMS.map(m=>({t:m.t,n:m.sim[k]+youIn(y.map[m.id]===k),you:y.map[m.id]===k}))
+          .filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,4);
+        return `<div class="quad" style="border-top:3px solid ${q.color}">
+          <h3 style="color:${q.color}">${q.name}</h3><div class="qd">${q.desc}</div>
+          <ul>${items.map(x=>`<li class="${x.you?'youli':''}"><span>${x.t}</span><span class="n mono">${x.n}</span></li>`).join('')}</ul></div>`;
+      }).join('')}</div>
+      <div class="callout">Late-night email is the room’s <b>slow leak</b> — it costs more than it returns.</div>`;
+  }
+  if(id==='chrono'){
+    const d={...SIM_CHRONO};
+    if(y.chronoType) d[y.chronoType==='Lark'?'lark':y.chronoType==='Owl'?'owl':'third']++;
+    const n=d.lark+d.third+d.owl, max=Math.max(d.lark,d.third,d.owl);
+    setResp(n);
+    const row=(label,v,col,youHere)=>`<div class="bar">
+      <span class="bl">${label}${youHere?' <small>— you are here</small>':''}</span>
+      <div class="btrack"><div class="bfill" data-tip="${v} of ${n}" style="width:${Math.round(100*v/max)}%;background:${col}"></div></div>
+      <span class="bv mono">${v}</span></div>`;
+    return `<p class="panel-q serif">Owls, larks, and third birds</p>
+      <p class="panel-sub">${n} chronotypes in</p>
+      <div class="bars">
+        ${row('Larks — early peak',d.lark,'var(--green)',y.chronoType==='Lark')}
+        ${row('Third birds — flexible',d.third,'var(--blue)',y.chronoType==='Third bird')}
+        ${row('Owls — late peak',d.owl,'var(--plum)',y.chronoType==='Owl')}
+      </div>
+      <div class="ribbon"><div class="eyebrow" style="margin-bottom:8px">Cohort peak windows</div>
+        <div class="ribbon-track"><div class="ribbon-band" style="left:18%;width:24%"></div><div class="ribbon-band b2" style="left:68%;width:18%"></div></div>
+        <div class="ribbon-lab mono"><span>6 am</span><span>noon</span><span>9 pm</span></div></div>
+      <div class="callout">Most of this room peaks <b>9:30–11:30 am</b> — which is exactly when the calendar fills with status meetings.</div>`;
+  }
+  if(id==='recover'){
+    const ms=[...SIM_MS];
+    if(y.recoverDone){ ms[MS.indexOf(y.m)]++; }
+    const n=ms.reduce((a,v)=>a+v,0), max=Math.max(...ms);
+    setResp(n);
+    const feed=[...SIM_COMMITS]; if(y.recoverDone && y.commit) feed.unshift([y.m, y.commit]);
+    return `<p class="panel-q serif">The room’s replenishment picks</p>
+      <p class="panel-sub">One M each · 71% agreed the recovery paradox is them</p>
+      <div class="bars">${MS.map((m,i)=>`<div class="bar"><span class="bl">${m}</span>
+        <div class="btrack"><div class="bfill" data-tip="${ms[i]} of ${n}" style="width:${Math.round(100*ms[i]/max)}%"></div></div>
+        <span class="bv mono">${ms[i]}</span></div>`).join('')}</div>
+      <div class="feed">${feed.slice(0,4).map(([m,c])=>`<div><b>${esc(m)}</b>“${esc(c)}”</div>`).join('')}</div>`;
+  }
+  if(id==='case'){
+    const done=GROUPS.filter(g=>g.in).length;
+    setResp(done+' groups');
+    return `<p class="panel-q serif">Bob Holden — what the groups saw</p>
+      <p class="panel-sub">${done} of 6 groups submitted</p>
+      <div class="gcards">${GROUPS.map(g=>`<div class="gcard">
+        <div class="gh"><b>Group ${g.n}</b><span class="status ${g.in?'in':'disc'}">${g.in?'Submitted':'Discussing'}</span></div>
+        <div class="gm2">${g.m}</div>
+        ${g.in?`<div class="ga">“${esc(g.a)}”</div>`:''}</div>`).join('')}</div>`;
+  }
+  if(id==='plan'){
+    const started=18+youIn(y.planSent);
+    setResp(started);
+    return `<p class="panel-q serif">Plans leaving the room</p>
+      <p class="panel-sub">Each participant gets their one-pager by email tonight</p>
+      <div class="statrow">
+        <div class="stat"><div class="sv">${started}<small>/24</small></div><div class="sl">plans started</div></div>
+        <div class="stat"><div class="sv" style="color:var(--green)">41</div><div class="sl">big rocks committed</div></div>
+        <div class="stat"><div class="sv" style="color:var(--plum)">9:30–11:30</div><div class="sl">cohort peak window</div></div>
+      </div>
+      <div class="feed">
+        <div><b>Big rock</b>“No email after 8:30 pm on weeknights.”</div>
+        <div><b>Big rock</b>“Move pipeline reviews out of my 10 am peak.”</div>
+        <div><b>Big rock</b>“One real lunch break, every day, no desk.”</div>
+        ${y.planSent&&y.rocks[0]?`<div><b>Big rock — you</b>“${esc(y.rocks[0])}”</div>`:''}
+      </div>
+      <div class="callout serif" style="font-size:18px">Bring weather with intention. Craft energy with <b>A·I·R</b>.</div>`;
+  }
+  return '';
+}
+function setResp(n){ requestAnimationFrame(()=>{ const r=$('#respLine'); if(r) r.innerHTML=`<b>${n}</b> responses`; }); }
+
+/* ================= view toggle ================= */
+function setView(v){
+  S.view=v;
+  $('#pview').hidden = v!=='p';
+  $('#dview').hidden = v!=='d';
+  $('#btnP').setAttribute('aria-pressed', v==='p');
+  $('#btnD').setAttribute('aria-pressed', v==='d');
+  if(v==='p') pRender(); else dRender();
+}
+$('#btnP').addEventListener('click',()=>setView('p'));
+$('#btnD').addEventListener('click',()=>setView('d'));
+setView('p');
+</script>
+</body>
+</html>
