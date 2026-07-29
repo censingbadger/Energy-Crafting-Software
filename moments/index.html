@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facilitator Moments — Nails Puzzle</title>
+<style>
+  :root{
+    --bg:#FAF8F4; --surface:#FFFFFF; --ink:#20261F; --ink2:#4A544C; --muted:#7A837C;
+    --line:#E5E1D8; --line2:#EFECE4;
+    --green:#0E8A5A; --ember:#C4552D; --blue:#3E6DC4; --plum:#8A55B0;
+    --green-tint:#E7F2EC; --ember-tint:#F7E9E2;
+    --shadow:0 1px 2px rgba(32,38,31,.05),0 8px 24px rgba(32,38,31,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#131714; --surface:#1B211C; --ink:#ECEFE9; --ink2:#B7BFB6; --muted:#828B82;
+      --line:#2A322B; --line2:#232A24;
+      --green:#38A276; --ember:#D9744B; --blue:#6089D2; --plum:#B07BD0;
+      --green-tint:#1D2B23; --ember-tint:#2E211B;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131714; --surface:#1B211C; --ink:#ECEFE9; --ink2:#B7BFB6; --muted:#828B82;
+    --line:#2A322B; --line2:#232A24;
+    --green:#38A276; --ember:#D9744B; --blue:#6089D2; --plum:#B07BD0;
+    --green-tint:#1D2B23; --ember-tint:#2E211B;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"]{
+    --bg:#FAF8F4; --surface:#FFFFFF; --ink:#20261F; --ink2:#4A544C; --muted:#7A837C;
+    --line:#E5E1D8; --line2:#EFECE4;
+    --green:#0E8A5A; --ember:#C4552D; --blue:#3E6DC4; --plum:#8A55B0;
+    --green-tint:#E7F2EC; --ember-tint:#F7E9E2;
+    --shadow:0 1px 2px rgba(32,38,31,.05),0 8px 24px rgba(32,38,31,.06);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);margin:0;
+    font-family:"Avenir Next",Seravek,"Segoe UI",system-ui,sans-serif;
+    font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;padding:0}
+  input,select{font:inherit;color:var(--ink)}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:var(--bg);
+    border-radius:12px;padding:11px 18px;font-weight:600;font-size:14.5px}
+  .btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line)}
+  .btn.stop{background:var(--ember);color:#fff;font-weight:700}
+  .btn.go{background:var(--green);color:#fff}
+  .btn:focus-visible,.chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  .chip{border:1.5px solid var(--line);border-radius:99px;padding:7px 15px;background:var(--surface);
+    font-size:13.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+  .topbar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .wordmark{font-size:18px;font-weight:600}
+  .wordmark b{color:var(--green);font-weight:600}
+  .wordmark small{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+  .spacer{flex:1}
+  .txt{border:1.5px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--bg);outline:none;min-width:0}
+  .txt:focus{border-color:var(--green)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+    padding:11px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:90;opacity:0;pointer-events:none;box-shadow:var(--shadow)}
+  .toast.show{opacity:1}
+  @media (prefers-reduced-motion: no-preference){ .toast{transition:opacity .25s} }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 20px 70px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:19px;font-weight:600}
+  .card p{margin:0 0 14px;color:var(--ink2);font-size:14px}
+  .formrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .home h1{font-size:32px;font-weight:500;letter-spacing:-.015em;margin:10px 0 6px;text-wrap:balance}
+  .home .sub{color:var(--ink2);margin:0 0 24px;font-size:15.5px;max-width:62ch}
+  .sesslist{display:flex;flex-direction:column;gap:8px}
+  .sessrow{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px}
+  .sessrow .meta{color:var(--muted);font-size:12.5px}
+
+  /* live */
+  .timer{font-size:22px;font-weight:700}
+  .roombar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .bigbtn{flex:1;min-width:200px;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:16px;
+    padding:16px 18px;font-weight:700;font-size:18px;color:#fff;box-shadow:var(--shadow)}
+  .bigbtn small{font-weight:500;font-size:12px;opacity:.85}
+  .bigbtn.succ{background:var(--green)}
+  .bigbtn.crash{background:var(--ember)}
+  .momentchips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+  .teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;margin-bottom:18px}
+  .tcard{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow)}
+  .tcard.won{border-color:var(--green);background:var(--green-tint)}
+  .tcard .thead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .tcard .tname{font-weight:700;font-size:15.5px}
+  .badge{font-size:11px;font-weight:800;letter-spacing:.05em;border-radius:99px;padding:2.5px 9px;background:var(--green);color:#fff}
+  .crashn{font-size:12px;color:var(--ember);font-weight:700}
+  .proxseg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:9px}
+  .proxseg button{border:1.5px solid var(--line);border-radius:9px;padding:6px 2px;font-size:10.5px;font-weight:700;
+    color:var(--muted);background:var(--bg);line-height:1.25}
+  .proxseg button[aria-pressed="true"]{border-color:var(--green);color:var(--green);background:var(--green-tint)}
+  .tacts{display:flex;gap:6px}
+  .tacts button{flex:1;border:1.5px solid var(--line);border-radius:9px;padding:6px 4px;font-size:12px;font-weight:700;background:var(--surface)}
+  .tacts .tw{color:var(--green)}
+  .tacts .tc{color:var(--ember)}
+  .feedcard h3{margin:0 0 8px;font-size:14px}
+  .feed{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow-y:auto}
+  .frow{display:flex;align-items:center;gap:10px;font-size:13.5px;border-left:3px solid var(--line);padding:3px 0 3px 12px}
+  .frow .ft{color:var(--muted);font-size:12px;min-width:44px}
+  .frow .fx{margin-left:auto;color:var(--muted);font-size:15px;padding:0 6px}
+  .frow.f-success{border-left-color:var(--green)}
+  .frow.f-crash{border-left-color:var(--ember)}
+  .frow.f-moment{border-left-color:var(--blue)}
+  .frow.f-prox{border-left-color:var(--plum)}
+
+  /* picker + overlays */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:70;padding:20px}
+  .modal{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:22px;max-width:460px;width:100%}
+  .modal h3{margin:0 0 4px;font-size:19px}
+  .modal p{margin:0 0 14px;color:var(--ink2);font-size:14px}
+  .pickgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+  .pickgrid button{border:1.5px solid var(--line);border-radius:12px;padding:13px 4px;font-weight:700;font-size:16px;background:var(--bg)}
+  .pickgrid button:hover{border-color:var(--ink2)}
+  .pickgrid button:disabled{opacity:.35;cursor:default}
+
+  /* review */
+  .rtitle{font-size:27px;font-weight:500;letter-spacing:-.015em;margin:4px 0 2px}
+  .rsub{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+  .statrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .stat{border:1px solid var(--line);border-radius:14px;padding:12px 20px;background:var(--surface);text-align:center}
+  .stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.15}
+  .stat span{font-size:12px;color:var(--muted)}
+  .orderlist{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .orderchip{display:inline-flex;align-items:center;gap:8px;background:var(--green-tint);border:1px solid var(--line);
+    border-radius:99px;padding:6px 14px;font-size:13.5px;font-weight:600}
+  .orderchip .on{background:var(--green);color:#fff;border-radius:99px;font-size:11px;font-weight:800;padding:2px 8px}
+  .tlbox{overflow-x:auto}
+  .tlbox svg{display:block;min-width:760px;width:100%}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-top:10px}
+  .lk{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+'use strict';
+const $=(s,el)=>(el||document).querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=ms=>{const s=Math.max(0,Math.floor(ms/1000));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
+let toastT; function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+
+const PROX=['Far away','Progress','Close','On the verge'];
+const MOMENTS=[['aha','Aha moment'],['reset','Reset / start over'],['conflict','Conflict'],['laughter','Laughter'],['leader','Leader emerged']];
+const MNAME=Object.fromEntries(MOMENTS); MNAME.note='Note';
+
+/* storage */
+const store=(()=> {
+  let mem=null;
+  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); }catch(e){ mem=[]; }
+  const KEY='nails_moments_v1';
+  return {
+    volatile:mem!==null,
+    load(){ if(mem) return mem; try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){return [];} },
+    save(l){ if(mem){mem=l;return;} try{localStorage.setItem(KEY,JSON.stringify(l));}catch(e){toast('Storage full — export');} },
+  };
+})();
+async function saveFile(filename,text){
+  const dl=window.claude&&window.claude.downloads;
+  if(dl){ try{ await dl.save({filename,data:text}); toast('Saved '+filename); return; }
+    catch(e){ if(e&&e.code==='declined')return;
+      if(e&&e.code==='rate_limited'){toast('One save at a time');return;} } }
+  try{ const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+    a.download=filename;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},400);
+    toast('Downloading '+filename);
+  }catch(e){ toast('Could not save in this view'); }
+}
+
+/* demo session */
+function demoSession(){
+  const ev=[],m=(t,o)=>ev.push(Object.assign({t:t*1000},o));
+  m(35,{type:'moment',kind:'laughter',team:0}); m(70,{type:'prox',team:3,level:1});
+  m(95,{type:'prox',team:2,level:1}); m(120,{type:'crash',team:3});
+  m(150,{type:'prox',team:1,level:1}); m(185,{type:'moment',kind:'leader',team:5});
+  m(210,{type:'prox',team:5,level:1}); m(235,{type:'crash',team:4});
+  m(260,{type:'prox',team:2,level:2}); m(300,{type:'moment',kind:'conflict',team:3});
+  m(318,{type:'crash',team:3}); m(330,{type:'prox',team:3,level:0});
+  m(340,{type:'prox',team:2,level:3}); m(342,{type:'success',team:2,order:1});
+  m(365,{type:'moment',kind:'aha',team:5}); m(380,{type:'prox',team:5,level:2});
+  m(420,{type:'prox',team:1,level:2}); m(438,{type:'crash',team:1});
+  m(450,{type:'prox',team:1,level:1}); m(470,{type:'prox',team:5,level:3});
+  m(500,{type:'success',team:5,order:2}); m(520,{type:'moment',kind:'reset',team:3});
+  m(545,{type:'prox',team:3,level:1}); m(590,{type:'prox',team:4,level:2});
+  m(615,{type:'crash',team:4}); m(640,{type:'prox',team:1,level:2});
+  m(660,{type:'prox',team:1,level:3}); m(672,{type:'success',team:1,order:3});
+  m(690,{type:'moment',kind:'note',team:0,note:'Room cheering team 6 on'});
+  m(700,{type:'prox',team:6,level:2});
+  return {id:'demo',demo:true,activity:'Nails puzzle (demo)',teams:6,
+    createdAt:'2026-07-26T14:00:00Z',durationMs:12*60*1000,events:ev};
+}
+
+/* state */
+const S={view:'home',live:null};
+function go(v){S.view=v;render();}
+function render(){ stopClock();
+  if(S.view==='home')renderHome();
+  else if(S.view==='live')renderLive();
+  else renderReview(S.reviewSession); }
+
+/* ============ HOME / SETUP ============ */
+function renderHome(){
+  const sessions=store.load();
+  $('#app').innerHTML=`
+  <header class="topbar"><div class="wordmark serif">Facilitator<b>·</b>Moments <small>key-moment marker</small></div></header>
+  <main class="wrap home">
+    <h1 class="serif">Mark what happened in the room, the moment it happens.</h1>
+    <p class="sub">Run this on your own device while teams work the nails puzzle. One tap logs a success (auto-ordered 1st, 2nd, 3rd…), a crash, or a color moment; per-team dials track who’s getting close and who’s far away. Stop the activity to get a full annotated timeline.</p>
+    <div class="card">
+      <h2>Start an activity</h2>
+      <div class="formrow">
+        <input class="txt" id="inAct" value="Nails puzzle" maxlength="40" style="flex:1;min-width:170px">
+        <select class="txt" id="inTeams">${Array.from({length:9},(_,i)=>
+          `<option value="${i+2}" ${i+2===6?'selected':''}>${i+2} teams</option>`).join('')}</select>
+        <button class="btn go" id="btnStart">Start activity</button>
+      </div>
+      ${store.volatile?'<p style="margin-top:10px;font-size:12.5px;color:var(--muted)">This view can’t store data between visits — export after each activity.</p>':''}
+    </div>
+    <div class="card">
+      <h2>Past activities</h2>
+      ${sessions.length? `<div class="sesslist">${sessions.map((s,i)=>`
+        <div class="sessrow"><b>${esc(s.activity)}</b>
+          <span class="meta">${s.teams} teams · ${fmt(s.durationMs)} · ${s.events.length} moments</span>
+          <span class="spacer"></span>
+          <button class="chip" data-view="${i}">Timeline</button>
+          <button class="chip" data-del="${i}">Delete</button></div>`).join('')}</div>`
+        : '<p style="margin:0;color:var(--muted);font-size:14px">Nothing yet.</p>'}
+      <div class="formrow" style="margin-top:12px">
+        <button class="chip" id="btnDemo">View a demo timeline</button>
+      </div>
+    </div>
+  </main>`;
+  $('#btnStart').addEventListener('click',()=>{
+    const teams=+$('#inTeams').value;
+    S.live={id:'m'+Date.now().toString(36),activity:$('#inAct').value.trim()||'Nails puzzle',
+      teams,t0:performance.now(),createdAt:new Date().toISOString(),
+      events:[],prox:Array(teams+1).fill(0),wins:{},crashes:{}};
+    go('live');
+  });
+  $('#btnDemo').addEventListener('click',()=>{S.reviewSession=demoSession();go('review');});
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
+    S.reviewSession=store.load()[+b.dataset.view];go('review');}));
+  document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
+    const l=store.load();l.splice(+b.dataset.del,1);store.save(l);renderHome();}));
+}
+
+/* ============ LIVE ============ */
+let clockRAF=null;
+function stopClock(){ if(clockRAF)cancelAnimationFrame(clockRAF); clockRAF=null; }
+const nowT=()=>Math.round(performance.now()-S.live.t0);
+
+function log(evt){
+  S.live.events.push(Object.assign({t:nowT()},evt));
+  refreshLive();
+}
+function evLabel(e,teams){
+  const who=e.team? 'Team '+e.team : 'Room';
+  if(e.type==='success') return `${who} succeeded — ${ord(e.order)}`;
+  if(e.type==='crash') return `${who}: crash — nails down`;
+  if(e.type==='prox') return `${who}: ${PROX[e.level]}`;
+  return `${who}: ${e.kind==='note'? '“'+(e.note||'')+'”' : MNAME[e.kind]||e.kind}`;
+}
+const ord=n=>n+(['th','st','nd','rd'][((n%100)-20)%10]||['th','st','nd','rd'][n%100]||'th');
+
+function renderLive(){
+  const L=S.live;
+  $('#app').innerHTML=`
+  <header class="topbar">
+    <div><div class="timer mono" id="clock">0:00</div>
+      <div style="font-size:12.5px;color:var(--muted)">${esc(L.activity)} · ${L.teams} teams</div></div>
+    <div class="spacer"></div>
+    <button class="btn stop" id="btnStop">Stop activity</button>
+  </header>
+  <main class="wrap">
+    <div class="roombar">
+      <button class="bigbtn succ" id="rbSucc">A team succeeded<small>tap, then pick the team</small></button>
+      <button class="bigbtn crash" id="rbCrash">Crash — nails down<small>tap, then pick the team (or room)</small></button>
+    </div>
+    <div class="momentchips">
+      <span class="eyebrow">Color moments</span>
+      ${MOMENTS.map(([k,n])=>`<button class="chip" data-mk="${k}">${n}</button>`).join('')}
+      <button class="chip" data-mk="note">+ Note</button>
+    </div>
+    <div class="teamgrid" id="teamgrid"></div>
+    <div class="card feedcard"><h3>Recent moments <button class="chip" id="btnUndo" style="margin-left:8px">Undo last</button></h3>
+      <div class="feed" id="feed"></div></div>
+  </main>`;
+  $('#btnStop').addEventListener('click',confirmStop);
+  $('#rbSucc').addEventListener('click',()=>pickTeam('Who succeeded?',false,team=>markSuccess(team)));
+  $('#rbCrash').addEventListener('click',()=>pickTeam('Whose nails came down?',true,team=>markCrash(team)));
+  document.querySelectorAll('[data-mk]').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.mk;
+    if(k==='note'){ noteModal(); return; }
+    pickTeam(MNAME[k]+' — which team?',true,team=>{ log({type:'moment',kind:k,team}); toast(MNAME[k]+' marked'); });
+  }));
+  $('#btnUndo').addEventListener('click',()=>{
+    const e=S.live.events.pop();
+    if(!e) return toast('Nothing to undo');
+    rebuildDerived(); toast('Removed: '+evLabel(e)); refreshLive();
+  });
+  refreshLive(); startClock();
+}
+function startClock(){
+  const tick=()=>{ clockRAF=requestAnimationFrame(tick);
+    const c=$('#clock'); if(c) c.textContent=fmt(nowT()); };
+  clockRAF=requestAnimationFrame(tick);
+}
+function rebuildDerived(){
+  const L=S.live;
+  L.prox=Array(L.teams+1).fill(0); L.wins={}; L.crashes={};
+  let order=0;
+  for(const e of L.events){
+    if(e.type==='prox') L.prox[e.team]=e.level;
+    if(e.type==='success'){ order++; e.order=order; L.wins[e.team]=e.order; }
+    if(e.type==='crash') L.crashes[e.team]=(L.crashes[e.team]||0)+1;
+  }
+}
+function markSuccess(team){
+  const L=S.live;
+  if(L.wins[team]) return toast('Team '+team+' already succeeded ('+ord(L.wins[team])+')');
+  const order=Object.keys(L.wins).length+1;
+  L.wins[team]=order; L.prox[team]=3;
+  log({type:'success',team,order}); log({type:'prox',team,level:3});
+  toast('Team '+team+' — '+ord(order)+' to succeed');
+}
+function markCrash(team){
+  const L=S.live;
+  if(team) L.crashes[team]=(L.crashes[team]||0)+1;
+  log({type:'crash',team});
+  toast(team? 'Crash marked for Team '+team : 'Room crash marked');
+}
+function refreshLive(){
+  const L=S.live, tg=$('#teamgrid'); if(!tg) return;
+  tg.innerHTML=Array.from({length:L.teams},(_,i)=>{
+    const t=i+1, won=L.wins[t], cr=L.crashes[t]||0;
+    return `<div class="tcard ${won?'won':''}">
+      <div class="thead"><span class="tname">Team ${t}</span>
+        ${won?`<span class="badge">${ord(won)} ✓</span>`:''}
+        <span class="spacer"></span>${cr?`<span class="crashn">✗ ${cr}</span>`:''}</div>
+      <div class="proxseg">${PROX.map((p,l)=>
+        `<button data-prox="${t}:${l}" aria-pressed="${L.prox[t]===l}">${p.split(' ')[0]}</button>`).join('')}</div>
+      <div class="tacts">
+        <button class="tw" data-win="${t}" ${won?'disabled':''}>Succeeded</button>
+        <button class="tc" data-crash="${t}">Crash</button>
+      </div></div>`;
+  }).join('');
+  tg.querySelectorAll('[data-prox]').forEach(b=>b.addEventListener('click',()=>{
+    const [t,l]=b.dataset.prox.split(':').map(Number);
+    if(L.prox[t]===l) return;
+    L.prox[t]=l; log({type:'prox',team:t,level:l});
+  }));
+  tg.querySelectorAll('[data-win]').forEach(b=>b.addEventListener('click',()=>markSuccess(+b.dataset.win)));
+  tg.querySelectorAll('[data-crash]').forEach(b=>b.addEventListener('click',()=>markCrash(+b.dataset.crash)));
+  const feed=$('#feed');
+  feed.innerHTML=L.events.slice(-9).reverse().map(e=>
+    `<div class="frow f-${e.type==='moment'?'moment':e.type}"><span class="ft mono">${fmt(e.t)}</span>${esc(evLabel(e))}</div>`).join('')
+    || '<div style="color:var(--muted);font-size:13px">No moments yet — the big buttons above are one tap away.</div>';
+}
+function pickTeam(title,allowRoom,cb){
+  const L=S.live;
+  const ov=document.createElement('div'); ov.className='overlay';
+  ov.innerHTML=`<div class="modal"><h3 class="serif">${esc(title)}</h3>
+    <div class="pickgrid">${Array.from({length:L.teams},(_,i)=>
+      `<button data-pk="${i+1}">${i+1}</button>`).join('')}</div>
+    <div class="formrow">
+      ${allowRoom?'<button class="chip" data-pk="0">Whole room</button>':''}
+      <span class="spacer"></span><button class="chip" data-cancel>Cancel</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  ov.querySelectorAll('[data-pk]').forEach(b=>b.addEventListener('click',()=>{ov.remove();cb(+b.dataset.pk);}));
+  const c=ov.querySelector('[data-cancel]'); if(c)c.addEventListener('click',()=>ov.remove());
+}
+function noteModal(){
+  const ov=document.createElement('div'); ov.className='overlay';
+  ov.innerHTML=`<div class="modal"><h3 class="serif">Quick note</h3>
+    <p>Logged at ${fmt(nowT())} — a few words is plenty.</p>
+    <div class="formrow"><input class="txt" id="inNote" maxlength="80" style="flex:1" placeholder="What just happened?">
+      <button class="btn" id="okNote">Log it</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  $('#inNote',ov).focus();
+  $('#okNote',ov).addEventListener('click',()=>{
+    const n=$('#inNote',ov).value.trim(); if(!n) return;
+    ov.remove(); log({type:'moment',kind:'note',team:0,note:n}); toast('Note logged');
+  });
+}
+function confirmStop(){
+  const L=S.live;
+  const ov=document.createElement('div'); ov.className='overlay';
+  ov.innerHTML=`<div class="modal"><h3 class="serif">Stop the activity?</h3>
+    <p>${L.events.length} moments over ${fmt(nowT())}. You’ll get the annotated timeline next.</p>
+    <div class="formrow"><button class="btn stop" id="mStop">Stop &amp; review</button>
+      <button class="chip" id="mBack">Keep going</button></div></div>`;
+  document.body.appendChild(ov);
+  $('#mBack',ov).addEventListener('click',()=>ov.remove());
+  $('#mStop',ov).addEventListener('click',()=>{
+    ov.remove(); stopClock();
+    const sess={id:L.id,activity:L.activity,teams:L.teams,createdAt:L.createdAt,
+      durationMs:nowT(),events:L.events};
+    const l=store.load(); l.unshift(sess); store.save(l);
+    S.live=null; S.reviewSession=sess; go('review');
+  });
+}
+
+/* ============ REVIEW ============ */
+function renderReview(sess){
+  const T=Math.max(sess.durationMs,60000);
+  const wins=sess.events.filter(e=>e.type==='success').sort((a,b)=>a.order-b.order);
+  const crashes=sess.events.filter(e=>e.type==='crash');
+  const moments=sess.events.filter(e=>e.type==='moment');
+  $('#app').innerHTML=`
+  <header class="topbar">
+    <div class="wordmark serif">Facilitator<b>·</b>Moments <small>key-moment marker</small></div>
+    <div class="spacer"></div>
+    <button class="chip" id="btnExport">Export JSON</button>
+    <button class="chip" id="btnHome">New activity</button>
+  </header>
+  <main class="wrap">
+    <h1 class="rtitle serif">${esc(sess.activity)}</h1>
+    <p class="rsub">${sess.teams} teams · ${fmt(sess.durationMs)} · ${sess.events.length} moments${sess.demo?' · demo':''}</p>
+    <div class="statrow">
+      <div class="stat"><b style="color:var(--green)">${wins.length}</b><span>successes</span></div>
+      <div class="stat"><b style="color:var(--ember)">${crashes.length}</b><span>crashes</span></div>
+      <div class="stat"><b>${moments.length}</b><span>color moments</span></div>
+    </div>
+    ${wins.length?`<div class="orderlist">${wins.map(w=>
+      `<span class="orderchip"><span class="on">${ord(w.order)}</span>Team ${w.team} · ${fmt(w.t)}</span>`).join('')}</div>`:''}
+    <div class="card"><h2 style="font-size:16px;margin-bottom:2px">Activity timeline</h2>
+      <p style="font-size:12.5px">Each lane is a team; the shaded step shows how close they were to solving it. Hover any marker.</p>
+      <div class="tlbox">${timelineSVG(sess,T)}</div>
+      <div class="legend">
+        <span><span class="lk" style="background:var(--green)"></span>Success (numbered in order)</span>
+        <span><span class="lk" style="background:var(--ember)"></span>Crash — nails down</span>
+        <span><span class="lk" style="background:var(--blue)"></span>Color moment / note</span>
+        <span><span class="lk" style="background:var(--green);opacity:.25;border-radius:3px"></span>Closeness to success</span>
+      </div></div>
+  </main>`;
+  $('#btnHome').addEventListener('click',()=>go('home'));
+  $('#btnExport').addEventListener('click',()=>saveFile(
+    `moments-${sess.activity.replace(/\W+/g,'_')}.json`,
+    JSON.stringify({app:'facilitator-moments',v:1,session:sess},null,1)));
+}
+function timelineSVG(sess,T){
+  const W=980,laneH=46,padL=64,padR=14,padT=8;
+  const lanes=1+sess.teams; // 0 = Room
+  const H=padT+lanes*laneH+26;
+  const xs=t=>padL+(W-padL-padR)*t/T;
+  let out=`<svg viewBox="0 0 ${W} ${H}" aria-label="Activity timeline">`;
+  const step=T>420000?120000:60000;
+  for(let t=0;t<=T;t+=step){
+    out+=`<line x1="${xs(t)}" y1="${padT}" x2="${xs(t)}" y2="${H-22}" stroke="var(--line2)"/>
+      <text x="${xs(t)}" y="${H-8}" font-size="10.5" fill="var(--muted)" text-anchor="middle"
+        font-family="ui-monospace,Menlo,monospace">${fmt(t)}</text>`;
+  }
+  for(let l=0;l<lanes;l++){
+    const y0=padT+l*laneH, yB=y0+laneH-8;
+    out+=`<line x1="${padL}" y1="${yB}" x2="${W-padR}" y2="${yB}" stroke="var(--line)"/>
+      <text x="${padL-8}" y="${y0+laneH/2+4}" font-size="12" font-weight="700" fill="var(--ink2)"
+        text-anchor="end">${l===0?'Room':'Team '+l}</text>`;
+    if(l>0){
+      const evs=sess.events.filter(e=>e.type==='prox'&&e.team===l).sort((a,b)=>a.t-b.t);
+      let d=`M ${xs(0)} ${yB}`, lev=0;
+      const yFor=v=>yB-(laneH-16)*v/3;
+      for(const e of evs){ d+=` L ${xs(e.t)} ${yFor(lev)} L ${xs(e.t)} ${yFor(e.level)}`; lev=e.level; }
+      const endT=sess.events.filter(e=>e.type==='success'&&e.team===l)[0];
+      d+=` L ${xs(endT?endT.t:T)} ${yFor(lev)}`;
+      out+=`<path d="${d} L ${xs(endT?endT.t:T)} ${yB} Z" fill="var(--green)" opacity=".14"/>
+            <path d="${d}" fill="none" stroke="var(--green)" stroke-width="1.6" opacity=".65"/>`;
+    }
+  }
+  for(const e of sess.events){
+    const lane=e.team||0, y0=padT+lane*laneH, yc=y0+laneH/2-4, x=xs(e.t);
+    const tt=`<title>${fmt(e.t)} — ${esc(evLabel(e))}</title>`;
+    if(e.type==='success')
+      out+=`<g>${tt}<circle cx="${x}" cy="${yc}" r="9.5" fill="var(--green)"/>
+        <text x="${x}" y="${yc+3.8}" font-size="10.5" font-weight="800" fill="#fff" text-anchor="middle">${e.order}</text></g>`;
+    else if(e.type==='crash')
+      out+=`<g>${tt}<circle cx="${x}" cy="${yc}" r="8" fill="var(--ember)"/>
+        <text x="${x}" y="${yc+3.8}" font-size="10.5" font-weight="800" fill="#fff" text-anchor="middle">✗</text></g>`;
+    else if(e.type==='moment')
+      out+=`<g>${tt}<rect x="${x-5}" y="${yc-5}" width="10" height="10" rx="2" fill="var(--blue)"
+        transform="rotate(45 ${x} ${yc})"/></g>`;
+  }
+  return out+'</svg>';
+}
+
+/* boot */
+render();
+</script>
+</body>
+</html>
