@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Team Energy Rater — Energy Crafting</title>
+<style>
+  :root{
+    --bg:#FAF8F4; --surface:#FFFFFF; --ink:#20261F; --ink2:#4A544C; --muted:#7A837C;
+    --line:#E5E1D8; --line2:#EFECE4;
+    --green:#0E8A5A; --ember:#C4552D; --blue:#3E6DC4; --plum:#8A55B0;
+    --green-tint:#E7F2EC; --ember-tint:#F7E9E2;
+    --shadow:0 1px 2px rgba(32,38,31,.05),0 8px 24px rgba(32,38,31,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#131714; --surface:#1B211C; --ink:#ECEFE9; --ink2:#B7BFB6; --muted:#828B82;
+      --line:#2A322B; --line2:#232A24;
+      --green:#38A276; --ember:#D9744B; --blue:#6089D2; --plum:#B07BD0;
+      --green-tint:#1D2B23; --ember-tint:#2E211B;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131714; --surface:#1B211C; --ink:#ECEFE9; --ink2:#B7BFB6; --muted:#828B82;
+    --line:#2A322B; --line2:#232A24;
+    --green:#38A276; --ember:#D9744B; --blue:#6089D2; --plum:#B07BD0;
+    --green-tint:#1D2B23; --ember-tint:#2E211B;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"]{
+    --bg:#FAF8F4; --surface:#FFFFFF; --ink:#20261F; --ink2:#4A544C; --muted:#7A837C;
+    --line:#E5E1D8; --line2:#EFECE4;
+    --green:#0E8A5A; --ember:#C4552D; --blue:#3E6DC4; --plum:#8A55B0;
+    --green-tint:#E7F2EC; --ember-tint:#F7E9E2;
+    --shadow:0 1px 2px rgba(32,38,31,.05),0 8px 24px rgba(32,38,31,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);margin:0;
+    font-family:"Avenir Next",Seravek,"Segoe UI",system-ui,sans-serif;
+    font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;padding:0}
+  input,select{font:inherit;color:var(--ink)}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:var(--bg);
+    border-radius:12px;padding:11px 18px;font-weight:600;font-size:14.5px}
+  .btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line)}
+  .btn.stop{background:var(--ember);color:#fff;font-weight:700}
+  .btn:focus-visible,.chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+  .chip{border:1.5px solid var(--line);border-radius:99px;padding:7px 15px;background:var(--surface);
+    font-size:13.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+  .chip[aria-pressed="true"]{border-color:var(--green);color:var(--ink);background:var(--green-tint)}
+  .chip:disabled{opacity:.4;cursor:default}
+  .topbar{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .wordmark{font-size:18px;font-weight:600}
+  .wordmark b{color:var(--green);font-weight:600}
+  .wordmark small{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+  .spacer{flex:1}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+    padding:11px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:80;opacity:0;pointer-events:none;box-shadow:var(--shadow)}
+  .toast.show{opacity:1}
+  @media (prefers-reduced-motion: no-preference){ .toast{transition:opacity .25s} }
+
+  /* home */
+  .home{max-width:660px;margin:0 auto;padding:40px 20px 80px}
+  .home h1{font-size:34px;font-weight:500;letter-spacing:-.015em;margin:0 0 6px;text-wrap:balance}
+  .home .sub{color:var(--ink2);margin:0 0 28px;font-size:15.5px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px;margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:19px;font-weight:600}
+  .card p{margin:0 0 14px;color:var(--ink2);font-size:14px}
+  .formrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .txt{border:1.5px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--bg);outline:none;min-width:0}
+  .txt:focus{border-color:var(--green)}
+  select.txt{padding:10px}
+  .note{font-size:12.5px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-top:6px}
+
+  /* rater */
+  .rate{display:flex;flex-direction:column;height:100dvh;min-height:480px;overflow:hidden}
+  .rate .topbar{flex:none}
+  .timer{font-size:20px;font-weight:700}
+  .count{font-size:12.5px;color:var(--muted)}
+  .padwrap{flex:1;display:grid;place-items:center;padding:10px 16px;min-height:0}
+  .pad{position:relative;width:min(92vw,60dvh,560px);aspect-ratio:1;border:1.5px solid var(--line);border-radius:20px;
+    background:var(--surface);box-shadow:var(--shadow);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;cursor:crosshair}
+  .pad .axis-x,.pad .axis-y{position:absolute;background:var(--line)}
+  .pad .axis-x{left:4%;right:4%;top:50%;height:1.5px}
+  .pad .axis-y{top:4%;bottom:4%;left:50%;width:1.5px}
+  .pad .alab{position:absolute;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);pointer-events:none}
+  .pad .alab.top{top:8px;left:50%;transform:translateX(-50%)}
+  .pad .alab.bot{bottom:8px;left:50%;transform:translateX(-50%)}
+  .pad .alab.lft{left:10px;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl}
+  .pad .alab.rgt{right:10px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl}
+  .qlab{position:absolute;font-size:13px;font-weight:700;pointer-events:none;opacity:.85}
+  .qlab small{display:block;font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.02em}
+  .qlab.q-te{top:26px;left:26px;color:var(--ember)}
+  .qlab.q-en{top:26px;right:26px;text-align:right;color:var(--green)}
+  .qlab.q-dr{bottom:26px;left:26px;color:var(--plum)}
+  .qlab.q-ca{bottom:26px;right:26px;text-align:right;color:var(--blue)}
+  .dot{position:absolute;width:7px;height:7px;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:.85}
+  .dot.old{opacity:.25}
+  .ring{position:absolute;width:14px;height:14px;border-radius:50%;border:2.5px solid var(--green);
+    transform:translate(-50%,-50%);pointer-events:none;opacity:0}
+  @media (prefers-reduced-motion: no-preference){
+    .ring{animation:ripple .55s ease-out forwards}
+    @keyframes ripple{0%{opacity:.9;scale:.6}100%{opacity:0;scale:2.6}}
+  }
+  .holdhint{position:absolute;left:50%;bottom:34%;transform:translateX(-50%);font-size:12px;color:var(--muted);
+    background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:5px 14px;pointer-events:none;white-space:nowrap}
+  .ribbonwrap{flex:none;padding:4px 16px 14px}
+  .ribbonlab{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:0 2px 4px}
+  canvas.ribbon{display:block;width:100%;height:72px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+
+  /* overlay */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:70;padding:20px}
+  .modal{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:24px;max-width:420px;width:100%}
+  .modal h3{margin:0 0 8px;font-size:20px}
+  .modal p{margin:0 0 18px;color:var(--ink2);font-size:14.5px}
+  .modal .formrow{margin-bottom:0}
+
+  /* dashboard */
+  .dash{max-width:1180px;margin:0 auto;padding:18px 22px 70px}
+  .dtitle{font-size:27px;font-weight:500;letter-spacing:-.015em;margin:6px 0 2px}
+  .dsub{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  .controls .lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-right:2px}
+  .seg2{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px;gap:2px}
+  .seg2 button{padding:6px 14px;border-radius:99px;font-size:13px;font-weight:600;color:var(--ink2)}
+  .seg2 button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+  .statrow{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+  .qstat{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:12px;padding:9px 15px;background:var(--surface)}
+  .qstat .qd{width:10px;height:10px;border-radius:3px}
+  .qstat b{font-size:17px;font-variant-numeric:tabular-nums}
+  .qstat span{font-size:12.5px;color:var(--muted)}
+  .chartcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
+  .chartcard h3{margin:0 0 2px;font-size:15px;font-weight:700}
+  .chartcard .ch-sub{font-size:12px;color:var(--muted);margin:0 0 10px}
+  .chartbox{position:relative}
+  .chartbox svg{display:block;width:100%}
+  .tip{position:absolute;background:var(--ink);color:var(--bg);font-size:12px;border-radius:8px;padding:6px 10px;
+    pointer-events:none;white-space:nowrap;z-index:10;transform:translate(-50%,-115%)}
+  .tip b{font-variant-numeric:tabular-nums}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .lchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:99px;
+    padding:4px 12px;font-size:12.5px;color:var(--ink2);background:var(--bg)}
+  .lchip .lk{width:14px;height:3px;border-radius:2px;background:var(--muted)}
+  .lchip.avg .lk{background:var(--green);height:4px}
+  .lchip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+  .empty{border:1px dashed var(--line);border-radius:16px;padding:36px 20px;text-align:center;color:var(--muted);font-size:14.5px}
+  .filehide{display:none}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+'use strict';
+/* ============ helpers ============ */
+const $ = (s,el)=> (el||document).querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = ms => { const s=Math.max(0,Math.floor(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+const cvar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let toastT;
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
+const QUAD = (x,y)=> y>=0 ? (x>=0?'en':'te') : (x>=0?'ca':'dr');
+const QMETA = {en:{name:'Energized',c:'--green'}, te:{name:'Tense',c:'--ember'},
+               ca:{name:'Calm',c:'--blue'},      dr:{name:'Drained',c:'--plum'}};
+
+/* ============ storage (localStorage with in-memory fallback) ============ */
+const store = (()=> {
+  let mem=null;
+  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); }
+  catch(e){ mem=[]; }
+  const KEY='ecr_sessions_v1';
+  return {
+    volatile: mem!==null,
+    load(){ if(mem) return mem;
+      try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } },
+    save(list){ if(mem){ mem=list; return; }
+      try{ localStorage.setItem(KEY, JSON.stringify(list)); }catch(e){ toast('Storage full — export your data'); } },
+    add(sess){ const l=this.load(); l.push(sess); this.save(l); },
+  };
+})();
+
+/* ============ demo data (seeded, deterministic) ============ */
+function demoSessions(){
+  let seed=42; const rnd=()=>{ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; };
+  const mk=(team,rater,arc)=>{ // arc: t01 -> {x,y} target
+    const dur=10*60*1000, samples=[]; const ox=(rnd()-.5)*.3, oy=(rnd()-.5)*.3;
+    for(let t=0;t<=dur;t+=4000+rnd()*3000){
+      const p=arc(t/dur);
+      samples.push({t:Math.round(t),
+        x:Math.max(-1,Math.min(1,p.x+ox+(rnd()-.5)*.22)),
+        y:Math.max(-1,Math.min(1,p.y+oy+(rnd()-.5)*.22))});
+    }
+    return {id:'demo-'+team+'-'+rater, rater:rater+' (demo)', team, demo:true,
+      createdAt:'2026-07-26T14:00:00Z', durationMs:dur, samples};
+  };
+  const arc1=u=> u<.35 ? {x:-.3-.4*u, y:.5}            // starts tense
+             : u<.6  ? {x:-.5, y:.5-3.2*(u-.35)}       // slides toward drained
+             :         {x:-.5+2.6*(u-.6), y:-.3+2.2*(u-.6)}; // recovers to energized
+  const arc2=u=> ({x:.35+.2*Math.sin(u*9), y:.55+.3*Math.sin(u*12+1)}); // high & mostly positive
+  const arc3=u=> ({x:.45-1.15*u, y:.25-1.0*u});        // calm fading to drained
+  const out=[];
+  [['Sam','Priya','Jordan'],['Maya','Chris','Dre','Casey'],['Taylor','Riley','Quinn']].forEach((names,i)=>{
+    const arc=[arc1,arc2,arc3][i];
+    names.forEach(n=>out.push(mk(i+1,n,arc)));
+  });
+  return out;
+}
+const DEMOS = demoSessions();
+
+/* ============ app state ============ */
+const S = {
+  view:'home',
+  rater:'', team:1,
+  showDemo:true, dTeam:0 /*0=all*/, dMode:'avg', solo:null,
+  rec:null,
+};
+function allSessions(){
+  const real=store.load();
+  return S.showDemo ? DEMOS.concat(real) : real.slice();
+}
+
+/* ============ downloads (artifact capability w/ anchor fallback) ============ */
+async function saveFile(filename, text){
+  const dl = window.claude && window.claude.downloads;
+  if(dl){
+    try{ await dl.save({filename, data:text}); toast('Saved '+filename); return; }
+    catch(e){
+      if(e && e.code==='declined') return;
+      if(e && (e.code==='rate_limited')){ toast('One save at a time — try again in a moment'); return; }
+      /* fall through to anchor for unavailable/etc. */
+    }
+  }
+  try{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+    a.download=filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},400);
+    toast('Downloading '+filename);
+  }catch(e){ toast('Could not save the file in this view'); }
+}
+
+/* ============ router ============ */
+function go(view){ S.view=view; render(); }
+function render(){
+  stopRibbon();
+  if(S.view==='home') renderHome();
+  else if(S.view==='rate') renderRate();
+  else renderDash();
+}
+
+/* ============ HOME ============ */
+function renderHome(){
+  $('#app').innerHTML = `
+  <header class="topbar">
+    <div class="wordmark serif">Energy<b>·</b>Crafting <small>Team Energy Rater</small></div>
+  </header>
+  <main class="home">
+    <h1 class="serif">Watch a team work. Trace its energy.</h1>
+    <p class="sub">Rate the team’s energy on two dimensions — <b>high ↔ low</b> and <b>positive ↔ negative</b> — while the activity runs. Tap once for a single read, or press and hold to trace continuously; every rating becomes a point on a smoothed line.</p>
+    <div class="card">
+      <h2>Rate a team</h2>
+      <p>Enter your name, pick the team you’re observing, and start when the activity starts.</p>
+      <div class="formrow">
+        <input class="txt" id="inName" placeholder="Your name" maxlength="28" style="flex:1;min-width:150px" value="${esc(S.rater)}">
+        <select class="txt" id="inTeam">${Array.from({length:10},(_,i)=>
+          `<option value="${i+1}" ${S.team===i+1?'selected':''}>Team ${i+1}</option>`).join('')}</select>
+        <button class="btn" id="goRate">Start rating</button>
+      </div>
+      ${store.volatile? `<div class="note">Heads up: this view can’t store data between visits — export your ratings before closing.</div>`:''}
+    </div>
+    <div class="card">
+      <h2>Facilitator dashboard</h2>
+      <p>Smoothed lines per rater, the team average, and quadrant time — filter by team, import rating files from other devices.</p>
+      <button class="btn ghost" id="goDash">Open dashboard</button>
+    </div>
+    <div class="note">Multiple raters: each person rates on their own device (or takes turns on one), then <b>exports</b> their file; import them all on the dashboard to overlay every line. Demo teams 1–3 are preloaded so you can explore.</div>
+  </main>`;
+  $('#goRate').addEventListener('click',()=>{
+    const n=$('#inName').value.trim(); if(!n) return toast('Add your name first');
+    S.rater=n; S.team=+$('#inTeam').value; startRecording(); go('rate');
+  });
+  $('#goDash').addEventListener('click',()=>go('dash'));
+}
+
+/* ============ RATER ============ */
+let ribbonRAF=null, holdTimer=null;
+function stopRibbon(){ if(ribbonRAF) cancelAnimationFrame(ribbonRAF); ribbonRAF=null;
+  if(holdTimer) clearInterval(holdTimer); holdTimer=null; }
+
+function startRecording(){
+  S.rec={ id:'r'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),
+    rater:S.rater, team:S.team, t0:performance.now(), createdAt:new Date().toISOString(),
+    samples:[], lastPos:null, holding:false };
+}
+function elapsed(){ return performance.now()-S.rec.t0; }
+
+function renderRate(){
+  const r=S.rec;
+  $('#app').innerHTML = `
+  <div class="rate">
+    <header class="topbar">
+      <div>
+        <div class="timer mono" id="clock">0:00</div>
+        <div class="count"><b>${esc(r.rater)}</b> · Team ${r.team} · <span id="nCount">0</span> ratings</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn stop" id="btnStop">Stop activity</button>
+    </header>
+    <div class="padwrap">
+      <div class="pad" id="pad">
+        <div class="axis-x"></div><div class="axis-y"></div>
+        <span class="alab top">High energy</span><span class="alab bot">Low energy</span>
+        <span class="alab lft">Negative</span><span class="alab rgt">Positive</span>
+        <div class="qlab q-te">Tense<small>high &amp; negative</small></div>
+        <div class="qlab q-en">Energized<small>high &amp; positive</small></div>
+        <div class="qlab q-dr">Drained<small>low &amp; negative</small></div>
+        <div class="qlab q-ca">Calm<small>low &amp; positive</small></div>
+        <div class="holdhint" id="hint">Tap to rate · press &amp; hold to trace</div>
+      </div>
+    </div>
+    <div class="ribbonwrap">
+      <div class="ribbonlab mono"><span id="rlabL"></span><span>now →</span></div>
+      <canvas class="ribbon" id="ribbon"></canvas>
+    </div>
+  </div>`;
+  wirePad(); startRibbon();
+  $('#btnStop').addEventListener('click', confirmStop);
+}
+
+function wirePad(){
+  const pad=$('#pad'), r=S.rec;
+  const posFromEvent=e=>{
+    const b=pad.getBoundingClientRect();
+    const x=Math.max(-1,Math.min(1,((e.clientX-b.left)/b.width)*2-1));
+    const y=Math.max(-1,Math.min(1,-(((e.clientY-b.top)/b.height)*2-1)));
+    return {x,y,px:e.clientX-b.left,py:e.clientY-b.top};
+  };
+  const record=p=>{
+    r.samples.push({t:Math.round(elapsed()), x:+p.x.toFixed(3), y:+p.y.toFixed(3)});
+    $('#nCount').textContent=r.samples.length;
+    const q=QUAD(p.x,p.y), col=cvar(QMETA[q].c);
+    const ring=document.createElement('div'); ring.className='ring';
+    ring.style.left=p.px+'px'; ring.style.top=p.py+'px'; ring.style.borderColor=col;
+    pad.appendChild(ring); setTimeout(()=>ring.remove(),650);
+    const dot=document.createElement('div'); dot.className='dot';
+    dot.style.left=p.px+'px'; dot.style.top=p.py+'px'; dot.style.background=col;
+    pad.appendChild(dot);
+    const dots=pad.querySelectorAll('.dot');
+    dots.forEach((d,i)=>{ if(i<dots.length-6) d.classList.add('old'); });
+    if(dots.length>26) dots[0].remove();
+    const hint=$('#hint'); if(hint) hint.remove();
+  };
+  pad.addEventListener('pointerdown',e=>{
+    e.preventDefault(); pad.setPointerCapture(e.pointerId);
+    r.holding=true; r.lastPos=posFromEvent(e); record(r.lastPos);
+    if(holdTimer) clearInterval(holdTimer);
+    holdTimer=setInterval(()=>{ if(r.holding&&r.lastPos) record(r.lastPos); },2000);
+  });
+  pad.addEventListener('pointermove',e=>{ if(r.holding) r.lastPos=posFromEvent(e); });
+  const up=e=>{ if(!r.holding) return; r.holding=false;
+    if(holdTimer){clearInterval(holdTimer); holdTimer=null;}
+    const last=r.samples[r.samples.length-1];
+    const p=posFromEvent(e);
+    if(last && elapsed()-last.t>600) record(p); };
+  pad.addEventListener('pointerup',up);
+  pad.addEventListener('pointercancel',()=>{ r.holding=false; if(holdTimer){clearInterval(holdTimer);holdTimer=null;} });
+}
+
+function startRibbon(){
+  const cv=$('#ribbon'), ctx=cv.getContext('2d');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const WINDOW=60000; let lastDraw=0;
+  const draw=now=>{
+    ribbonRAF=requestAnimationFrame(draw);
+    if(reduce && now-lastDraw<1000) return; lastDraw=now;
+    const dpr=devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+    if(cv.width!==W*dpr){ cv.width=W*dpr; cv.height=H*dpr; }
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+    const t=elapsed(), tL=t-WINDOW;
+    ctx.strokeStyle=cvar('--line2'); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+    ctx.fillStyle=cvar('--muted'); ctx.font='10px ui-monospace,Menlo,monospace';
+    ctx.strokeStyle=cvar('--line');
+    for(let sec=Math.max(0,Math.ceil(tL/10000)*10); sec*1000<=t; sec+=10){
+      const x=W-(t-sec*1000)/WINDOW*W;
+      ctx.beginPath(); ctx.moveTo(x,H-14); ctx.lineTo(x,H-6); ctx.stroke();
+      ctx.fillText(fmt(sec*1000), x-11, H-18);
+    }
+    const r=S.rec;
+    for(const s of r.samples){
+      if(s.t<tL) continue;
+      const x=W-(t-s.t)/WINDOW*W, y=6+(1-(s.y+1)/2)*(H-26);
+      ctx.fillStyle=cvar(QMETA[QUAD(s.x,s.y)].c);
+      ctx.beginPath(); ctx.arc(x,y,3,0,7); ctx.fill();
+    }
+    const clock=$('#clock'); if(clock) clock.textContent=fmt(t);
+    const rl=$('#rlabL'); if(rl) rl.textContent='← '+fmt(Math.max(0,tL));
+  };
+  ribbonRAF=requestAnimationFrame(draw);
+}
+
+function confirmStop(){
+  const r=S.rec, n=r.samples.length;
+  const ov=document.createElement('div'); ov.className='overlay';
+  ov.innerHTML=`<div class="modal">
+    <h3 class="serif">Stop and submit?</h3>
+    <p>${n} rating${n===1?'':'s'} over ${fmt(elapsed())} for <b>Team ${r.team}</b>. Submitting ends this rating session.</p>
+    <div class="formrow">
+      <button class="btn stop" id="mSubmit">Submit ratings</button>
+      <button class="btn ghost" id="mBack">Keep rating</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  $('#mBack',ov).addEventListener('click',()=>ov.remove());
+  $('#mSubmit',ov).addEventListener('click',()=>{
+    ov.remove(); stopRibbon();
+    const sess={id:r.id, rater:r.rater, team:r.team, createdAt:r.createdAt,
+      durationMs:Math.round(elapsed()), samples:r.samples};
+    store.add(sess); S.rec=null;
+    if(n===0) toast('Submitted (no ratings recorded)'); else toast('Submitted — '+n+' ratings');
+    S.dTeam=sess.team; go('dash');
+    saveFile(`energy-team${sess.team}-${sess.rater.replace(/\W+/g,'_')}.json`,
+      JSON.stringify({app:'energy-rater',v:1,sessions:[sess]},null,1));
+  });
+}
+
+/* ============ series math ============ */
+function resample(sess, T, N){
+  const out=new Array(N+1).fill(null), ss=sess.samples;
+  if(!ss.length) return out;
+  for(let i=0;i<=N;i++){
+    const t=T*i/N;
+    if(t<ss[0].t-4000 || t>ss[ss.length-1].t+4000) continue;
+    if(t<=ss[0].t){ out[i]={x:ss[0].x,y:ss[0].y}; continue; }
+    if(t>=ss[ss.length-1].t){ out[i]={x:ss[ss.length-1].x,y:ss[ss.length-1].y}; continue; }
+    let k=1; while(ss[k].t<t) k++;
+    const a=ss[k-1], b=ss[k], u=(t-a.t)/Math.max(1,b.t-a.t);
+    out[i]={x:a.x+(b.x-a.x)*u, y:a.y+(b.y-a.y)*u};
+  }
+  return out;
+}
+function smooth(arr, w){
+  return arr.map((v,i)=>{
+    if(!v) return null;
+    let sx=0, sy=0, n=0;
+    for(let j=Math.max(0,i-w); j<=Math.min(arr.length-1,i+w); j++){
+      const u=arr[j]; if(u){ sx+=u.x; sy+=u.y; n++; } }
+    return {x:sx/n, y:sy/n};
+  });
+}
+function averageOf(seriesList){
+  const N=seriesList[0]?seriesList[0].length:0, out=new Array(N).fill(null);
+  for(let i=0;i<N;i++){
+    let sx=0,sy=0,n=0;
+    for(const s of seriesList){ const v=s[i]; if(v){sx+=v.x; sy+=v.y; n++;} }
+    if(n) out[i]={x:sx/n, y:sy/n, n};
+  }
+  return out;
+}
+
+/* ============ DASHBOARD ============ */
+function renderDash(){
+  const sessions=allSessions();
+  const teamsWith=new Set(sessions.map(s=>s.team));
+  const sel = S.dTeam===0 ? sessions : sessions.filter(s=>s.team===S.dTeam);
+  $('#app').innerHTML = `
+  <header class="topbar">
+    <div class="wordmark serif">Energy<b>·</b>Crafting <small>Team Energy Rater</small></div>
+    <div class="spacer"></div>
+    <button class="chip" id="btnHome">Rate a team</button>
+    <button class="chip" id="btnImport">Import ratings</button>
+    <button class="chip" id="btnExport">Export all</button>
+    <input type="file" id="fileIn" class="filehide" accept=".json,application/json" multiple>
+  </header>
+  <main class="dash">
+    <h1 class="dtitle serif">${S.dTeam===0?'All teams':'Team '+S.dTeam}</h1>
+    <p class="dsub">${sel.length} rating session${sel.length===1?'':'s'}${S.showDemo?' · demo data shown':''}</p>
+    <div class="controls">
+      <span class="lab">Team</span>
+      <button class="chip" data-team="0" aria-pressed="${S.dTeam===0}">All</button>
+      ${Array.from({length:10},(_,i)=>{const t=i+1;
+        return `<button class="chip" data-team="${t}" aria-pressed="${S.dTeam===t}" ${teamsWith.has(t)?'':'disabled'}>${t}</button>`;}).join('')}
+    </div>
+    <div class="controls">
+      <span class="lab">View</span>
+      <div class="seg2">
+        <button data-mode="avg" aria-pressed="${S.dMode==='avg'}">Average</button>
+        <button data-mode="ind" aria-pressed="${S.dMode==='ind'}">Individual lines</button>
+      </div>
+      <span class="lab" style="margin-left:12px">Demo</span>
+      <div class="seg2">
+        <button data-demo="1" aria-pressed="${S.showDemo}">Show</button>
+        <button data-demo="0" aria-pressed="${!S.showDemo}">Hide</button>
+      </div>
+    </div>
+    <div id="dashBody"></div>
+  </main>`;
+  $('#btnHome').addEventListener('click',()=>go('home'));
+  $('#btnExport').addEventListener('click',()=>{
+    const real=store.load();
+    if(!real.length) return toast('No submitted ratings to export yet');
+    saveFile('energy-ratings-all.json', JSON.stringify({app:'energy-rater',v:1,sessions:real},null,1));
+  });
+  $('#btnImport').addEventListener('click',()=>$('#fileIn').click());
+  $('#fileIn').addEventListener('change',async e=>{
+    let added=0;
+    for(const f of e.target.files){
+      try{
+        const j=JSON.parse(await f.text());
+        const list=j.sessions||(Array.isArray(j)?j:[j]);
+        const cur=store.load(), ids=new Set(cur.map(s=>s.id));
+        for(const s of list){
+          if(s && Array.isArray(s.samples) && s.team>=1 && s.team<=10 && !ids.has(s.id)){
+            cur.push({id:String(s.id||'imp'+Date.now()), rater:String(s.rater||'Imported'),
+              team:+s.team, createdAt:s.createdAt||'', durationMs:+s.durationMs||0,
+              samples:s.samples.map(p=>({t:+p.t||0,x:+p.x||0,y:+p.y||0}))});
+            ids.add(s.id); added++;
+          }
+        }
+        store.save(cur);
+      }catch(err){ toast('Could not read '+f.name); }
+    }
+    if(added) toast('Imported '+added+' session'+(added===1?'':'s'));
+    renderDash();
+  });
+  $('#app').querySelectorAll('[data-team]').forEach(b=>b.addEventListener('click',()=>{
+    S.dTeam=+b.dataset.team; S.solo=null; renderDash(); }));
+  $('#app').querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+    S.dMode=b.dataset.mode; renderDash(); }));
+  $('#app').querySelectorAll('[data-demo]').forEach(b=>b.addEventListener('click',()=>{
+    S.showDemo=b.dataset.demo==='1'; renderDash(); }));
+  drawDashBody(sel);
+}
+
+function drawDashBody(sel){
+  const body=$('#dashBody');
+  const withData=sel.filter(s=>s.samples.length>=1);
+  if(!withData.length){
+    body.innerHTML=`<div class="empty">No ratings here yet. Rate a team, or import rating files — or switch demo data on to explore.</div>`;
+    return;
+  }
+  const T=Math.max(...withData.map(s=>s.samples[s.samples.length-1].t), 60000);
+  const N=140;
+  let lines; // [{key,label,series,isAvg}]
+  if(S.dTeam===0){
+    const byTeam={};
+    withData.forEach(s=>{ (byTeam[s.team]=byTeam[s.team]||[]).push(s); });
+    lines=Object.keys(byTeam).sort((a,b)=>a-b).map(t=>({
+      key:'t'+t, label:'Team '+t,
+      series:smooth(averageOf(byTeam[t].map(s=>resample(s,T,N))),2)}));
+  }else{
+    lines=withData.map(s=>({key:s.id, label:s.rater,
+      series:smooth(resample(s,T,N),2)}));
+  }
+  const avg={key:'avg', label:S.dTeam===0?'All-team average':'Team average',
+    series:smooth(averageOf(lines.map(l=>l.series)),1), isAvg:true};
+
+  /* quadrant time share from raw samples */
+  const qc={en:0,te:0,ca:0,dr:0}; let qn=0;
+  withData.forEach(s=>s.samples.forEach(p=>{ qc[QUAD(p.x,p.y)]++; qn++; }));
+
+  body.innerHTML=`
+    <div class="statrow">${Object.entries(QMETA).map(([q,m])=>
+      `<div class="qstat"><span class="qd" style="background:var(${m.c})"></span>
+        <b>${qn?Math.round(100*qc[q]/qn):0}%</b><span>${m.name}</span></div>`).join('')}
+    </div>
+    ${chartCard('Energy','low ↔ high — how much fuel the team is running on','y',lines,avg,T)}
+    ${chartCard('Tone','negative ↔ positive — the flavor of that energy','x',lines,avg,T)}
+    <div class="legend" id="legend">
+      <button class="lchip avg" aria-pressed="${S.solo===null}" data-solo=""><span class="lk"></span>${esc(avg.label)}</button>
+      ${S.dMode==='ind'? lines.map(l=>
+        `<button class="lchip" aria-pressed="${S.solo===l.key}" data-solo="${esc(l.key)}"><span class="lk"></span>${esc(l.label)}</button>`).join(''):''}
+    </div>`;
+  body.querySelectorAll('[data-solo]').forEach(b=>b.addEventListener('click',()=>{
+    S.solo = b.dataset.solo===''? null : (S.solo===b.dataset.solo? null : b.dataset.solo);
+    drawDashBody(sel);
+  }));
+  body.querySelectorAll('.chartbox').forEach(box=>wireHover(box,lines,avg,T));
+}
+
+function chartCard(title,sub,dim,lines,avg,T){
+  const W=980,H=210,padL=8,padR=8,padT=10,padB=22;
+  const xs=i=> padL+(W-padL-padR)*i/(avg.series.length-1);
+  const ys=v=> padT+(H-padT-padB)*(1-(v+1)/2);
+  const path=(series)=> {
+    let d='',pen=false;
+    series.forEach((v,i)=>{ if(!v){pen=false;return;}
+      d+=(pen?'L':'M')+xs(i).toFixed(1)+' '+ys(v[dim]).toFixed(1)+' '; pen=true; });
+    return d;
+  };
+  const ticks=[]; const step=T>360000?120000:60000;
+  for(let t=0;t<=T;t+=step) ticks.push(t);
+  const showInd=S.dMode==='ind';
+  const soloOn=S.solo!==null;
+  return `<div class="chartcard">
+    <h3>${title}</h3><p class="ch-sub">${sub}</p>
+    <div class="chartbox" data-dim="${dim}">
+      <svg viewBox="0 0 ${W} ${H}" aria-label="${title} over time">
+        <line x1="${padL}" y1="${ys(0)}" x2="${W-padR}" y2="${ys(0)}" stroke="var(--line)" stroke-width="1.5"/>
+        <line x1="${padL}" y1="${ys(1)}" x2="${W-padR}" y2="${ys(1)}" stroke="var(--line2)"/>
+        <line x1="${padL}" y1="${ys(-1)}" x2="${W-padR}" y2="${ys(-1)}" stroke="var(--line2)"/>
+        ${ticks.map(t=>`<text x="${padL+(W-padL-padR)*t/T}" y="${H-6}" font-size="10.5"
+            fill="var(--muted)" font-family="ui-monospace,Menlo,monospace">${fmt(t)}</text>`).join('')}
+        <text x="${padL+4}" y="${padT+11}" font-size="10.5" fill="var(--muted)">${dim==='y'?'high':'positive'}</text>
+        <text x="${padL+4}" y="${H-padB-4}" font-size="10.5" fill="var(--muted)">${dim==='y'?'low':'negative'}</text>
+        ${showInd? lines.map(l=>`<path d="${path(l.series)}" fill="none"
+            stroke="${S.solo===l.key?'var(--blue)':'var(--muted)'}"
+            stroke-opacity="${soloOn&&S.solo!==l.key?.18:.55}"
+            stroke-width="${S.solo===l.key?2.6:1.6}" stroke-linejoin="round" stroke-linecap="round"
+            data-line="${esc(l.key)}"/>`).join(''):''}
+        <path d="${path(avg.series)}" fill="none" stroke="var(--green)"
+          stroke-opacity="${soloOn?.45:1}" stroke-width="3.2"
+          stroke-linejoin="round" stroke-linecap="round"/>
+        <line class="xh" x1="0" y1="${padT}" x2="0" y2="${H-padB}" stroke="var(--ink2)" stroke-dasharray="3 3" opacity="0"/>
+      </svg>
+    </div>
+  </div>`;
+}
+
+function wireHover(box,lines,avg,T){
+  const svg=box.querySelector('svg'), xh=svg.querySelector('.xh'), dim=box.dataset.dim;
+  let tip=null;
+  const move=e=>{
+    const b=svg.getBoundingClientRect();
+    const fx=(e.clientX-b.left)/b.width;
+    const i=Math.round(fx*(avg.series.length-1));
+    const v=avg.series[Math.max(0,Math.min(avg.series.length-1,i))];
+    const t=T*i/(avg.series.length-1);
+    const vx=8+(980-16)*i/(avg.series.length-1);
+    xh.setAttribute('x1',vx); xh.setAttribute('x2',vx); xh.setAttribute('opacity','1');
+    if(!tip){ tip=document.createElement('div'); tip.className='tip'; box.appendChild(tip); }
+    const sv=x=> x==null?'–':(x>=0?'+':'')+x.toFixed(2);
+    let extra='';
+    if(S.solo){ const l=lines.find(l=>l.key===S.solo);
+      if(l){ const lv=l.series[i]; extra=`<br>${esc(l.label)}: <b>${sv(lv&&lv[dim])}</b>`; } }
+    tip.innerHTML=`${fmt(t)} · avg <b>${sv(v&&v[dim])}</b>${extra}`;
+    tip.style.left=(fx*100)+'%'; tip.style.top='14px';
+  };
+  box.addEventListener('mousemove',move);
+  box.addEventListener('mouseleave',()=>{ xh.setAttribute('opacity','0'); if(tip){tip.remove(); tip=null;} });
+}
+
+/* ============ boot ============ */
+render();
+</script>
+</body>
+</html>
